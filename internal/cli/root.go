@@ -32,6 +32,7 @@ func Execute(build Build) {
 		newHotCmd(),
 		newPenvCmd(),
 		newSetupCmd(),
+		newUpdateCmd(build),
 	)
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
