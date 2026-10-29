@@ -13,7 +13,7 @@ Code is the truth. This file explains the *why* behind the shape it takes.
 - `cmd/tb/main.go` — entry point. `version`/`commit`/`date` are stamped by
   GoReleaser ldflags; a plain `go build` reports `dev`.
 - `internal/cli/` — one cobra command per file (`setup`, `pr`, `commit`,
-  `checkout`, `hot`, `penv`, `update`, `version`), wired in `root.go`.
+  `checkout`, `hot`, `env`, `update`, `version`), wired in `root.go`.
   `root.go` runs everything under a context cancelled by Ctrl+C.
 - `internal/ui/` — the only place terminal styling lives: `log` wrapper
   (kitchen timestamps, like the old `gum log`), lipgloss styles,
@@ -30,7 +30,11 @@ Code is the truth. This file explains the *why* behind the shape it takes.
 - `internal/auth/` — ssh key, npm token, gpg signing key.
 - `internal/files/` — compare / write-with-backup / `~` pretty paths, shared
   by dots and shellrc.
-- `internal/secret/` — masking used by `tb penv` and the npm plan line.
+- `internal/secret/` — masking used by `tb env` and the npm plan line.
+  `Mask` keeps the first/last 4 chars and rejects values under 8; `Redact`
+  stars short values fully; `MaskEnviron` masks each `NAME=value` of
+  `os.Environ()` (names starting with `=`, Windows drive vars, split on the
+  next `=`) for `tb env` with no argument.
 - `internal/gitx/` — git/gh queries and the pure rules behind `tb checkout`.
 - `internal/setup/` — the `tb setup` flow: form, plan, execute, summary.
 - `scripts/` — `install.sh` / `install.ps1` bootstrap one-liners, served by
@@ -120,8 +124,9 @@ the one matching `$SHELL`, bash as fallback) or, on Windows, the
 `# ---BEGIN DOTFILES SOURCE---` block from the old bash installer is removed.
 Block contents: `~/.local/bin` on PATH, brew shellenv, mise activate, zoxide
 init, history size, `glo`/`repo`, and aliases from `pr`, `commit`,
-`checkout`, `hot`, `penv` to `tb`. Every tool line is guarded so a missing
-tool doesn't break the shell.
+`checkout`, `hot` to `tb`. `tb env` gets no alias on purpose: it would shadow
+the system `env` (`env FOO=1 cmd`, `env -i`). Every tool line is guarded so a
+missing tool doesn't break the shell.
 
 ## Auth
 

@@ -60,10 +60,10 @@ $ tb setup
 | <kbd>tb commit [msg]</kbd> | stage everything and commit, titled after the branch when no message is given |
 | <kbd>tb checkout [branch\|pr]</kbd> | switch branch (default branch when empty), pull and prune the other local branches |
 | <kbd>tb hot &lt;cmd&gt; &lt;files&gt;</kbd> | rerun a command every time one of the files changes |
-| <kbd>tb penv &lt;value&gt;</kbd> | print a secret masked |
+| <kbd>tb env [value]</kbd> | print a secret masked, or every env var masked when empty |
 | <kbd>tb update</kbd> | update `tb` to the latest release |
 
-The shell sources alias `pr`, `commit`, `checkout`, `hot` and `penv` to their `tb` command.
+The shell sources alias `pr`, `commit`, `checkout` and `hot` to their `tb` command.
 
 <div align="center">
 
