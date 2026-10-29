@@ -1,8 +1,11 @@
 package cli
 
 import (
+	"context"
 	"os"
+	"os/signal"
 
+	"github.com/pmqueiroz/toolbelt/internal/run"
 	"github.com/pmqueiroz/toolbelt/internal/ui"
 	"github.com/spf13/cobra"
 )
@@ -21,10 +24,24 @@ func Execute(build Build) {
 		SilenceErrors: true,
 	}
 
-	root.AddCommand(newVersionCmd(build))
+	root.AddCommand(
+		newVersionCmd(build),
+		newPRCmd(),
+		newCommitCmd(),
+		newCheckoutCmd(),
+		newHotCmd(),
+		newPenvCmd(),
+	)
 
-	if err := root.Execute(); err != nil {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	err := root.ExecuteContext(ctx)
+	stop()
+	if err != nil {
 		ui.Error(err.Error())
 		os.Exit(1)
 	}
+}
+
+func quietRunner() *run.Runner {
+	return run.New(false, nil)
 }
