@@ -35,6 +35,7 @@ func Execute(build Build) {
 		newSecretCmd(),
 		newSetupCmd(),
 		newUpdateCmd(build),
+		newUninstallCmd(),
 	)
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
