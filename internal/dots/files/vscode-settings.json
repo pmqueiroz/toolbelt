@@ -1,0 +1,175 @@
+{  
+    "extensions.ignoreRecommendations": true,
+    "security.workspace.trust.untrustedFiles": "open",
+    "diffEditor.ignoreTrimWhitespace": false,
+    "update.mode": "start",
+    "update.showReleaseNotes": false,
+    "breadcrumbs.enabled": false,
+    "window.commandCenter": false,
+    "window.titleBarStyle": "custom",
+    "window.zoomLevel": 1,
+    "window.density.editorTabHeight": "default",
+    "workbench.editor.labelFormat": "short",
+    "workbench.editor.empty.hint": "hidden",
+    "workbench.productIconTheme": "fluent-icons",
+    "workbench.statusBar.visible": false,
+    "workbench.iconTheme": "material-icon-theme",
+    "workbench.colorTheme": "Aura Soft Dark",
+    "workbench.startupEditor": "none",
+    "workbench.activityBar.location": "bottom",
+    "explorer.fileNesting.enabled": true,
+    "explorer.confirmDragAndDrop": false,
+    "explorer.confirmDelete": false,
+    "explorer.compactFolders": false,
+    "explorer.sortOrder": "foldersNestsFiles",
+    "editor.accessibilitySupport": "off",
+    "editor.tabSize": 2,
+    "editor.hideCursorInOverviewRuler": true,
+    "editor.parameterHints.enabled": false,
+    "editor.cursorStyle": "line-thin",
+    "editor.cursorBlinking": "expand",
+    "editor.minimap.enabled": false,
+    "editor.detectIndentation": true,
+    "editor.renderLineHighlight": "gutter",
+    "editor.suggestSelection": "first",
+    "editor.suggest.preview": true,
+    "editor.suggest.showDeprecated": true,
+    "editor.inlineSuggest.enabled": true,
+    "editor.inlayHints.maximumLength": 15,
+    "editor.bracketPairColorization.enabled": true,
+    "editor.experimentalEditContextEnabled": true,
+    "editor.lightbulb.enabled": "on",
+    "editor.linkedEditing": true,
+    /* Font configuration */
+    "editor.fontLigatures": true,
+    "editor.fontSize": 19,
+    "editor.lineHeight": 26,
+    "editor.fontFamily": "'Fira Code', 'JetBrains Mono', monospace",
+    /* Linting and intellisense */
+    "files.insertFinalNewline": true,
+    "files.trimFinalNewlines": true,
+    "editor.codeActionsOnSave": {
+        "source.fixAll": "explicit",
+        "source.sortImports": "never"
+    },
+    "emmet.syntaxProfiles": {
+        "javascript": "jsx"
+    },
+    "emmet.includeLanguages": {
+        "javascript": "javascriptreact"
+    },
+    "[rust]": {
+        "editor.defaultFormatter": "rust-lang.rust-analyzer",
+        "editor.formatOnSave": true
+    },
+    "[jsonc]": {
+        "editor.defaultFormatter": "vscode.json-language-features"
+    },
+    "[javascript]": {
+        "editor.defaultFormatter": "vscode.typescript-language-features"
+    },
+    /* Language configuration */
+    "javascript.updateImportsOnFileMove.enabled": "always",
+    "typescript.updateImportsOnFileMove.enabled": "always",
+    "javascript.suggest.autoImports": true,
+    "typescript.suggest.autoImports": true,
+    "typescript.inlayHints.parameterNames.enabled": "literals",
+    "typescript.inlayHints.variableTypes.enabled": false,
+    "typescript.inlayHints.functionLikeReturnTypes.enabled": false,
+    "typescript.inlayHints.propertyDeclarationTypes.enabled": false,
+    "files.associations": {
+        "*.mdx": "markdown",
+        ".prettierrc": "json"
+    },
+    /* Extensions and Modules configuration */
+    "material-icon-theme.folders.associations": {
+        "fake": "mock",
+        "infra": "app",
+        "schema": "class",
+        "http": "container",
+        "entities": "class",
+        "dtos": "typescript",
+        "typeorm": "database",
+        "migrations": "tools",
+        "context": "animation",
+        "modules": "components",
+        "implementations": "core",
+        "repositories": "mappings",
+        "components": "react-components",
+        "lottie": "animation",
+        ".jest": "config",
+        "cypress": "config",
+        "deploy": "config",
+        "mock-api": "mock",
+        ".next": "dist",
+        "devtools": "tools",
+        "blog": "content"
+    },
+    "material-icon-theme.files.associations": {
+        "tsconfig.json": "tune",
+        "ormconfig.json": "database",
+        "*.template.svg": "ejs",
+        "*.u": "../../icons/umbra",
+        "*.umb": "../../icons/umbra"
+    },
+    "cSpell.language": "en,pt",
+    "cSpell.userWords": [
+        "bootcamp",
+        "borderless",
+        "bracestack",
+        "cellptr",
+        "challengeid",
+        "cleiton",
+        "cnpj",
+        "codeptr",
+        "Confirmers",
+        "hocs",
+        "ispb",
+        "Linkedin",
+        "marguerita",
+        "maxlength",
+        "monospace",
+        "pmqueiroz",
+        "PTBR",
+        "Reactars",
+        "rehype",
+        "repos",
+        "roboto",
+        "roboto slab",
+        "slab",
+        "stackoverflow",
+        "storaged",
+        "testid",
+        "typeorm",
+        "unform",
+        "uuidv",
+        "varchar"
+    ],
+    "cSpell.enabledLanguageIds": [
+        "csharp",
+        "go",
+        "javascript",
+        "javascriptreact",
+        "markdown",
+        "php",
+        "plaintext",
+        "typescript",
+        "typescriptreact",
+        "yml",
+        "lua"
+    ],
+    "github.copilot.enable": {
+        "*": true,
+        "yaml": false,
+        "plaintext": false,
+        "markdown": false,
+    },
+    "github.copilot.editor.enableAutoCompletions": true,
+    "eslint.rules.customizations": [
+        {
+            "rule": "react-hooks/exhaustive-deps",
+            "severity": "off"
+        }
+    ],
+    "git.openRepositoryInParentFolders": "always"
+}
