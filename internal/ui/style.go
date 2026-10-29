@@ -2,7 +2,6 @@ package ui
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/charmbracelet/lipgloss"
 )
@@ -22,15 +21,6 @@ var (
 	Link  = lipgloss.NewStyle().Foreground(Gold)
 	List  = lipgloss.NewStyle().Foreground(Blue).Margin(0, 1)
 
-	box = lipgloss.NewStyle().
-		Foreground(Pink).
-		BorderForeground(Pink).
-		Border(lipgloss.RoundedBorder()).
-		Align(lipgloss.Center).
-		Width(50).
-		Margin(1, 2).
-		Padding(1, 4)
-
 	keyBox = lipgloss.NewStyle().
 		Foreground(lipgloss.Color("15")).
 		Background(lipgloss.Color("10")).
@@ -40,10 +30,6 @@ var (
 	branchName = lipgloss.NewStyle().Bold(true).Underline(true).Foreground(Purple)
 	prHash     = lipgloss.NewStyle().Foreground(Magenta)
 )
-
-func Banner(lines ...string) string {
-	return box.Render(strings.Join(lines, "\n"))
-}
 
 func KeyBox(key string) string {
 	return keyBox.Render(key)

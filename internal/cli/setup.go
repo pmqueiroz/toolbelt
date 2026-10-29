@@ -61,8 +61,6 @@ func runSetup(ctx context.Context, verbose bool) error {
 		pkgmgr.PrependPath(c.Pkg)
 	}
 
-	ui.Println(ui.Banner("TOOLBELT", "starting setup", "made with <3 by peam"))
-
 	answers, err := setup.Ask(gitIdentity(ctx, r), recipes.ForOS(c.GOOS))
 	if errors.Is(err, setup.ErrAborted) {
 		ui.Warn("setup aborted. nothing changed")
