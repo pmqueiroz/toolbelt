@@ -6,9 +6,9 @@ into "how long would it take" estimates. Code: `internal/bench/`,
 
 ## Duration
 
-`--duration/-d` takes any Go duration (`1m`, `5m`, `90s`). Without the flag
-and with a TTY, a huh select offers 1 minute, 5 minutes or custom (a
-validated input). Without a TTY and no flag it runs the 1m default.
+`--duration/-d` takes any Go duration (`5s`, `10s`, `1m`). Without the flag
+and with a TTY, a huh select offers 5 seconds, 10 seconds or custom (a
+validated input). Without a TTY and no flag it runs the 5s default.
 Ctrl+C stops early; the results still print, computed from the real elapsed
 time.
 

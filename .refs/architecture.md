@@ -170,7 +170,7 @@ removed first. A failed checkout stops; a failed pull only warns.
 
 ## Benchmark
 
-`tb benchmark` generates uuids for 1m, 5m or a custom time and estimates how
+`tb benchmark` generates uuids for 5s, 10s or a custom time and estimates how
 long finding all of them, or filling RAM and disk with them, would take.
 Details in [benchmark.md](./benchmark.md). No shell alias: `benchmark` is
 not a daily command.
