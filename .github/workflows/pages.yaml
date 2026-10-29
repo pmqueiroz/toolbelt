@@ -2,7 +2,7 @@ name: pages
 
 on:
   push:
-    branches: [master]
+    branches: [main]
     paths: ["scripts/**", ".github/workflows/pages.yaml"]
   workflow_dispatch:
 

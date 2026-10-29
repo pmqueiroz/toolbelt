@@ -36,10 +36,10 @@ irm https://toolbelt.pmqueiroz.dev/install.ps1 | iex
 
 ### More Unstable
 
-Build from `master` with [Go][go-url], or grab an archive from the [releases][releases-url]
+Build from `main` with [Go][go-url], or grab an archive from the [releases][releases-url]
 
 ```sh
-$ go install github.com/pmqueiroz/toolbelt/cmd/tb@master
+$ go install github.com/pmqueiroz/toolbelt/cmd/tb@main
 $ tb setup
 ```
 

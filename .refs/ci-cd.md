@@ -5,7 +5,7 @@ GitHub Actions in `.github/workflows/`. Go version comes from `go.mod` via
 
 ## Workflows
 
-- **`ci.yaml`** — every PR and push to `master`; in-flight runs for the same
+- **`ci.yaml`** — every PR and push to `main`; in-flight runs for the same
   ref are cancelled.
   - `test` — matrix on ubuntu, macos, windows: `go vet`, `go test`; gofmt
     check on linux only. Windows matters: path separators and profile logic
@@ -17,7 +17,7 @@ GitHub Actions in `.github/workflows/`. Go version comes from `go.mod` via
   GitHub release. `.goreleaser.yaml` builds linux/darwin/windows ×
   amd64/arm64 with `CGO_ENABLED=0`, archives `tb_<os>_<arch>.tar.gz`
   (`.zip` on windows) containing only the binary, plus `checksums.txt`.
-- **`pages.yaml`** — on push to `master` touching `scripts/`: deploys
+- **`pages.yaml`** — on push to `main` touching `scripts/`: deploys
   `scripts/` to GitHub Pages. Custom domain `toolbelt.pmqueiroz.dev`
   (Cloudflare DNS, `CNAME toolbelt → pmqueiroz.github.io`, proxy **off** so
   GitHub can issue the certificate), HTTPS enforced.
