@@ -12,7 +12,7 @@ func TestSSHSkipsExistingKey(t *testing.T) {
 	home := t.TempDir()
 	r := run.New(false, nil)
 
-	if got := SSH(home, "peam@example.com", r); len(got) != 1 || got[0].Description != "create ssh key ~/.ssh/id_ed25519" {
+	if got := SSH(home, "peam@example.com", r); len(got) != 1 || got[0].Description != "create ssh key "+filepath.FromSlash("~/.ssh/id_ed25519") {
 		t.Fatalf("missing key plan = %v", got)
 	}
 

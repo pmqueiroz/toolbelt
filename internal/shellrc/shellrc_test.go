@@ -92,7 +92,7 @@ func TestPlanWritesBlockThenHasNothingLeftToDo(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(actions) != 1 || !strings.HasPrefix(actions[0].Description, "update toolbelt block in ~/.bashrc") {
+	if len(actions) != 1 || !strings.HasPrefix(actions[0].Description, "update toolbelt block in "+filepath.FromSlash("~/.bashrc")) {
 		t.Fatalf("actions = %v", actions)
 	}
 	if err := actions[0].Run(context.Background()); err != nil {

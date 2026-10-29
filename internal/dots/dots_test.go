@@ -57,7 +57,7 @@ func TestPlanPerOS(t *testing.T) {
 	if slices.ContainsFunc(windows, func(d string) bool { return strings.Contains(d, ".tmux.conf") }) {
 		t.Errorf("windows plan should skip tmux: %v", windows)
 	}
-	if !slices.Contains(linux, "write .gitconfig to ~/.gitconfig") {
+	if !slices.Contains(linux, "write .gitconfig to "+filepath.FromSlash("~/.gitconfig")) {
 		t.Errorf("linux plan = %v", linux)
 	}
 }

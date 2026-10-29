@@ -2,6 +2,7 @@ package pkgmgr
 
 import (
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -36,11 +37,12 @@ func TestSupports(t *testing.T) {
 
 func TestPrependPathPutsManagerDirsFirstWithoutDuplicates(t *testing.T) {
 	sep := string(os.PathListSeparator)
-	t.Setenv("PATH", strings.Join([]string{"/usr/bin", "/opt/homebrew/bin"}, sep))
+	brewDir := filepath.Dir(filepath.FromSlash("/opt/homebrew/bin/brew"))
+	t.Setenv("PATH", strings.Join([]string{"/usr/bin", brewDir}, sep))
 
-	PrependPath(&brew{bin: "/opt/homebrew/bin/brew"})
+	PrependPath(&brew{bin: filepath.Join(brewDir, "brew")})
 
-	want := strings.Join([]string{"/opt/homebrew/bin", "/usr/bin"}, sep)
+	want := strings.Join([]string{brewDir, "/usr/bin"}, sep)
 	if got := os.Getenv("PATH"); got != want {
 		t.Errorf("PATH = %q, want %q", got, want)
 	}
