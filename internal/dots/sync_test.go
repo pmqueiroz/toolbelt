@@ -92,7 +92,7 @@ func TestPlanPerOS(t *testing.T) {
 	linux := descriptions(t, "linux", paths, peam, now)
 	windows := descriptions(t, "windows", paths, peam, now)
 
-	if len(linux) != 5 {
+	if len(linux) != 6 {
 		t.Errorf("linux plan = %v", linux)
 	}
 	if slices.ContainsFunc(windows, func(d string) bool { return strings.Contains(d, ".tmux.conf") }) {

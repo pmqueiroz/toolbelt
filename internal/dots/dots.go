@@ -37,6 +37,7 @@ var All = []Dot{
 	{File: ".tmux.conf", OS: []string{"linux", "darwin"}, Target: func(p Paths) string { return filepath.Join(p.Home, ".tmux.conf") }},
 	{File: "vscode-settings.json", Target: func(p Paths) string { return filepath.Join(p.Config, "Code", "User", "settings.json") }},
 	{File: "keybindings.json", Target: func(p Paths) string { return filepath.Join(p.Config, "Code", "User", "keybindings.json") }},
+	{File: "claude-settings.json", Target: func(p Paths) string { return filepath.Join(p.Home, ".claude", "settings.json") }},
 }
 
 func DefaultPaths() (Paths, error) {
