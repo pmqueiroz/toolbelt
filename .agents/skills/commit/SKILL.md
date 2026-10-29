@@ -33,7 +33,7 @@ All optional — derive from the diff when not given.
 * Lower-case after the colon, no full stop at the end.
 * `scope` is the area touched: a command (`setup`, `pr`, `commit`,
   `checkout`, `hot`, `benchmark`, `env`, `secret`, `update`), a package (`pkgmgr`, `recipes`,
-  `dots`, `shellrc`, `auth`, `ui`, `run`, `bitwarden`, `vault`, `bench`), `install` (bootstrap scripts), a
+  `dots`, `merge`, `shellrc`, `auth`, `ui`, `run`, `bitwarden`, `vault`, `bench`), `install` (bootstrap scripts), a
   recipe name (`essentials`, `node`, `code`, …) or a dot (`gitconfig`,
   `vscode`, `tmux`). Omit it when the change spans several areas.
 
