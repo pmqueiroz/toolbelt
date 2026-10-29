@@ -31,9 +31,11 @@ All optional — derive from the diff when not given.
 ```
 * Imperative mood ("add", "migrate", "fix" — not "added"/"fixes").
 * Lower-case after the colon, no full stop at the end.
-* `scope` is the area touched: `install`, `aliases`, `sources`, `bundler`,
-  `ci`, a recipe name (`node`, `code`, `cask`, …) or a dot (`gitconfig`,
-  `vscode`, `tmux`, …). Omit it when the change spans several areas.
+* `scope` is the area touched: a command (`setup`, `pr`, `commit`,
+  `checkout`, `hot`, `penv`, `update`), a package (`pkgmgr`, `recipes`,
+  `dots`, `shellrc`, `auth`, `ui`, `run`), `install` (bootstrap scripts), a
+  recipe name (`essentials`, `node`, `code`, …) or a dot (`gitconfig`,
+  `vscode`, `tmux`). Omit it when the change spans several areas.
 
 ### Body — avoid it
 The commit is **title-only by default.** Do not write an explanatory body to
