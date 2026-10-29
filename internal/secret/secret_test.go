@@ -1,6 +1,9 @@
 package secret
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestMask(t *testing.T) {
 	cases := map[string]string{
@@ -41,5 +44,30 @@ func TestMaskEnviron(t *testing.T) {
 		if got[i] != want[i] {
 			t.Errorf("MaskEnviron[%d] = %q; want %q", i, got[i], want[i])
 		}
+	}
+}
+
+func TestCompactCapsTheHiddenMiddle(t *testing.T) {
+	cases := map[string]string{
+		"":             "",
+		"short":        "*****",
+		"sev7nch":      "******",
+		"abcd1234wxyz": "abcd****wxyz",
+		"abcd" + strings.Repeat("x", 500) + "wxyz": "abcd******wxyz",
+	}
+	for in, want := range cases {
+		if got := Compact(in); got != want {
+			t.Errorf("Compact(%q) = %q; want %q", in, got, want)
+		}
+	}
+}
+
+func TestSplitEnvSplitsOnTheFirstSeparatorAfterTheName(t *testing.T) {
+	name, value, ok := SplitEnv("=C:=C:\\x")
+	if !ok || name != "=C:" || value != "C:\\x" {
+		t.Errorf("SplitEnv = %q, %q, %v", name, value, ok)
+	}
+	if _, _, ok := SplitEnv("NOSEP"); ok {
+		t.Error("expected no separator")
 	}
 }

@@ -5,7 +5,10 @@ import (
 	"strings"
 )
 
-const visible = 8
+const (
+	visible  = 8
+	maxStars = 6
+)
 
 var ErrTooShort = errors.New("env var is too short")
 
@@ -14,8 +17,20 @@ func Mask(value string) (string, error) {
 	if len(runes) < visible {
 		return "", ErrTooShort
 	}
+	return hideMiddle(runes, len(runes)-visible), nil
+}
+
+func Compact(value string) string {
+	runes := []rune(value)
+	if len(runes) < visible {
+		return strings.Repeat("*", min(len(runes), maxStars))
+	}
+	return hideMiddle(runes, min(len(runes)-visible, maxStars))
+}
+
+func hideMiddle(runes []rune, stars int) string {
 	edge := visible / 2
-	return string(runes[:edge]) + strings.Repeat("*", len(runes)-visible) + string(runes[len(runes)-edge:]), nil
+	return string(runes[:edge]) + strings.Repeat("*", stars) + string(runes[len(runes)-edge:])
 }
 
 func Redact(value string) string {
@@ -28,14 +43,22 @@ func Redact(value string) string {
 func MaskEnviron(environ []string) []string {
 	lines := make([]string, 0, len(environ))
 	for _, entry := range environ {
-		i := separator(entry)
-		if i < 0 {
+		name, value, ok := SplitEnv(entry)
+		if !ok {
 			lines = append(lines, entry)
 			continue
 		}
-		lines = append(lines, entry[:i+1]+Redact(entry[i+1:]))
+		lines = append(lines, name+"="+Redact(value))
 	}
 	return lines
+}
+
+func SplitEnv(entry string) (name, value string, ok bool) {
+	i := separator(entry)
+	if i < 0 {
+		return "", "", false
+	}
+	return entry[:i], entry[i+1:], true
 }
 
 func separator(entry string) int {
