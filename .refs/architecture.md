@@ -33,9 +33,18 @@ Code is the truth. This file explains the *why* behind the shape it takes.
   by dots and shellrc.
 - `internal/secret/` — masking used by `tb env`, `tb secret list` and the npm plan line.
   `Mask` keeps the first/last 4 chars and rejects values under 8; `Redact`
-  stars short values fully; `MaskEnviron` masks each `NAME=value` of
-  `os.Environ()` (names starting with `=`, Windows drive vars, split on the
-  next `=`) for `tb env` with no argument.
+  stars short values fully; `SplitEnv` splits a `NAME=value` entry (names
+  starting with `=`, Windows drive vars, split on the next `=`);
+  `MaskEnviron` redacts every entry of `os.Environ()`; `Compact` is `Redact`
+  with the hidden middle capped at 6 stars, so a huge value (`LS_COLORS`)
+  stays one short cell.
+- `tb env` with no argument (`internal/cli/env.go`): when stdout is a
+  terminal it renders a rounded lipgloss table (NAME / VALUE, sorted by name,
+  values through `secret.Compact`, `Wrap(false)`); the table keeps its
+  natural width and is only capped to the terminal width when wider, so
+  overflowing cells are truncated with `…` instead of wrapping. When stdout
+  is not a terminal (piped, redirected) it prints the plain `MaskEnviron`
+  lines with the full star count, unchanged for scripts.
 - `internal/bitwarden/` — pure-Go Bitwarden Secrets Manager client: access
   token parsing, key derivation, EncString crypto, login and the project /
   secret endpoints (see [secret.md](./secret.md)).
