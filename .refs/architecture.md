@@ -185,10 +185,17 @@ default), enables the `context7` plugin from `claude-plugins-official`
 (Anthropic's marketplace, known to Claude Code out of the box, so no
 `extraKnownMarketplaces` entry), and points `statusLine` at `npx -y ccstatusline@latest`
 ([ccstatusline](https://github.com/sirmalloc/ccstatusline)). npx comes from
-the `node` recipe; ccstatusline keeps its own layout in
-`~/.config/ccstatusline/settings.json`, which tb doesn't manage. Claude Code
+the `node` recipe. Claude Code
 rewrites `settings.json` itself (`/model`, `/config`); if it replaces the link
 with a regular file, sync treats that file as local and merges it.
+
+`ccstatusline-settings.json` is ccstatusline's layout (widgets, colors),
+taken from its TUI export with `exportedBy` dropped (its own import strips
+that key too). It targets `~/.config/ccstatusline/settings.json` under the
+home dir on every OS, not `os.UserConfigDir()`, because ccstatusline builds
+the path from `os.homedir()`. When ccstatusline saves from its TUI it
+resolves the symlink and renames its temp file over the store copy, so the
+link survives and the change is a local edit that sync merges.
 
 ### Store and links
 
