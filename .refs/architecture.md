@@ -137,8 +137,15 @@ add it to `All()`, give every package both a brew name and a winget ID
 backoff (`run.Retry`): the marketplace answers 503 now and then, and one
 flaky extension used to fail the whole action.
 
-Current recipes: `essentials`, `node`, `pnpm`, `code` (default) and `apps`,
-`android` (macOS/Windows only, because brew casks don't exist on linux).
+Current recipes: `essentials`, `node`, `pnpm`, `code`, `claude` (default)
+and `apps`, `android` (macOS/Windows only, because brew casks don't exist on
+linux).
+
+`CaskOnLinux` marks the exception: a cask that ships a plain binary artifact
+and installs fine with Linuxbrew. `claude` (Claude Code, cask `claude-code`,
+winget `Anthropic.ClaudeCode`) is one, so it installs on all three OSes.
+Its config is the `claude-settings.json` dot, not part of the recipe, so it
+syncs like every other dot.
 `node` and `pnpm` both start with "install mise"; `plan.Dedupe` keeps one.
 
 Why mise instead of asdf: asdf has no Windows support; mise runs everywhere
@@ -170,6 +177,18 @@ Embedded with `//go:embed all:files` (`all:` because they are dotfiles).
 `{{username}}`, `{{email}}`, `{{passphrase}}` are replaced by `dots.Render`.
 Targets use `os.UserConfigDir()`, which gives the right VS Code folder per OS.
 `.tmux.conf` is skipped on Windows.
+
+`claude-settings.json` targets `~/.claude/settings.json` (Claude Code's user
+settings, same path on every OS). It sets `attribution.commit` to `""`,
+which drops Claude's co-author trailer from commits (PR attribution stays
+default), enables the `context7` plugin from `claude-plugins-official`
+(Anthropic's marketplace, known to Claude Code out of the box, so no
+`extraKnownMarketplaces` entry), and points `statusLine` at `npx -y ccstatusline@latest`
+([ccstatusline](https://github.com/sirmalloc/ccstatusline)). npx comes from
+the `node` recipe; ccstatusline keeps its own layout in
+`~/.config/ccstatusline/settings.json`, which tb doesn't manage. Claude Code
+rewrites `settings.json` itself (`/model`, `/config`); if it replaces the link
+with a regular file, sync treats that file as local and merges it.
 
 ### Store and links
 
