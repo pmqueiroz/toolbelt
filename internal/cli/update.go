@@ -4,8 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"runtime"
+	"time"
 
 	"github.com/creativeprojects/go-selfupdate"
+	"github.com/pmqueiroz/toolbelt/internal/dots"
 	"github.com/pmqueiroz/toolbelt/internal/ui"
 	"github.com/spf13/cobra"
 )
@@ -51,7 +54,7 @@ func update(ctx context.Context, current string) error {
 	}
 	if latest.LessOrEqual(current) {
 		ui.Info("tb is up to date", "version", current)
-		return nil
+		return syncDotsAfterUpdate(ctx, nil)
 	}
 
 	exe, err := selfupdate.ExecutablePath()
@@ -64,5 +67,23 @@ func update(ctx context.Context, current string) error {
 		return err
 	}
 	ui.Info("updated tb", "from", current, "to", latest.Version())
+	return syncDotsAfterUpdate(ctx, func(ctx context.Context) error {
+		return quietRunner().Attached(ctx, exe, "dots", "sync")
+	})
+}
+
+func syncDotsAfterUpdate(ctx context.Context, viaNewBinary func(context.Context) error) error {
+	var err error
+	if viaNewBinary != nil {
+		err = viaNewBinary(ctx)
+	} else {
+		var paths dots.Paths
+		if paths, err = dots.DefaultPaths(); err == nil {
+			err = syncDots(ctx, runtime.GOOS, paths, time.Now())
+		}
+	}
+	if err != nil {
+		return fmt.Errorf("tb updated, but syncing dot files failed: %w", err)
+	}
 	return nil
 }
