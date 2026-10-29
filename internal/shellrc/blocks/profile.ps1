@@ -8,3 +8,4 @@ function pr { tb pr @args }
 function commit { tb commit @args }
 function checkout { tb checkout @args }
 function hot { tb hot @args }
+function ask { tb ask @args }
