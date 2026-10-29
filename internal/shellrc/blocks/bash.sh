@@ -3,6 +3,7 @@ case ":$PATH:" in *":$HOME/.local/bin:"*) ;; *) export PATH="$HOME/.local/bin:$P
 [ -x /home/linuxbrew/.linuxbrew/bin/brew ] && eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 command -v mise >/dev/null && eval "$(mise activate bash)"
 command -v zoxide >/dev/null && eval "$(zoxide init bash)"
+command -v tb >/dev/null && eval "$(tb completion bash)"
 shopt -s autocd
 
 export HISTSIZE=

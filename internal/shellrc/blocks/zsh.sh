@@ -3,6 +3,10 @@ case ":$PATH:" in *":$HOME/.local/bin:"*) ;; *) export PATH="$HOME/.local/bin:$P
 [ -x /home/linuxbrew/.linuxbrew/bin/brew ] && eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 command -v mise >/dev/null && eval "$(mise activate zsh)"
 command -v zoxide >/dev/null && eval "$(zoxide init zsh)"
+if command -v tb >/dev/null; then
+  (( $+functions[compdef] )) || { autoload -Uz compinit && compinit; }
+  eval "$(tb completion zsh)"
+fi
 setopt autocd
 
 export HISTSIZE=10000000
