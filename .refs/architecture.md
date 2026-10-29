@@ -13,7 +13,7 @@ Code is the truth. This file explains the *why* behind the shape it takes.
 - `cmd/tb/main.go` — entry point. `version`/`commit`/`date` are stamped by
   GoReleaser ldflags; a plain `go build` reports `dev`.
 - `internal/cli/` — one cobra command per file (`setup`, `pr`, `commit`,
-  `checkout`, `hot`, `env`, `update`, `version`), wired in `root.go`.
+  `checkout`, `hot`, `env`, `secret`, `update`, `version`), wired in `root.go`.
   `root.go` runs everything under a context cancelled by Ctrl+C.
 - `internal/ui/` — the only place terminal styling lives: `log` wrapper
   (kitchen timestamps, like the old `gum log`), lipgloss styles,
@@ -30,11 +30,16 @@ Code is the truth. This file explains the *why* behind the shape it takes.
 - `internal/auth/` — ssh key, npm token, gpg signing key.
 - `internal/files/` — compare / write-with-backup / `~` pretty paths, shared
   by dots and shellrc.
-- `internal/secret/` — masking used by `tb env` and the npm plan line.
+- `internal/secret/` — masking used by `tb env`, `tb secret list` and the npm plan line.
   `Mask` keeps the first/last 4 chars and rejects values under 8; `Redact`
   stars short values fully; `MaskEnviron` masks each `NAME=value` of
   `os.Environ()` (names starting with `=`, Windows drive vars, split on the
   next `=`) for `tb env` with no argument.
+- `internal/bitwarden/` — pure-Go Bitwarden Secrets Manager client: access
+  token parsing, key derivation, EncString crypto, login and the project /
+  secret endpoints (see [secret.md](./secret.md)).
+- `internal/vault/` — the `tb secret` local store: AES-GCM file, data key in
+  the OS keyring (file fallback), pure `Merge` of local and remote entries.
 - `internal/gitx/` — git/gh queries and the pure rules behind `tb checkout`.
 - `internal/setup/` — the `tb setup` flow: form, plan, execute, summary.
 - `scripts/` — `install.sh` / `install.ps1` bootstrap one-liners, served by
@@ -147,6 +152,13 @@ removed first. A failed checkout stops; a failed pull only warns.
 
 `tb hot` polls size+mtime of each file every 500ms and runs the command via
 `sh -c` or `powershell -Command`.
+
+## Secrets
+
+`tb secret` keeps secrets in an encrypted local store and, once `connect`ed,
+mirrors one Bitwarden Secrets Manager project. Details in
+[secret.md](./secret.md). It has no shell alias for the same reason `tb env`
+has none: a bare `secret` is too generic a name to claim.
 
 ## Known gaps
 

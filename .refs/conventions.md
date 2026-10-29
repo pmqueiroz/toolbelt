@@ -37,7 +37,8 @@ only one in use.
   on Windows.
 - User-facing output goes through `internal/ui` (`ui.Info`, `ui.Warn`, …),
   never bare `fmt.Print` (exception: command results meant for piping, like
-  `tb version` and `tb env`, which write to `cmd.OutOrStdout()`).
+  `tb version`, `tb env`, `tb secret get` and `tb secret list`, which write to
+`cmd.OutOrStdout()`).
 - Log and error messages are lower-case.
 - External commands go through `run.Runner`, never `exec.Command` directly,
   so they are logged (exception: `shellrc.powershellProfile`, which runs
@@ -58,7 +59,8 @@ follow-up — the Operating Protocol in AGENTS.md is binding.
 
 One concept = one helper. Before writing a new function, check the shared
 packages: `internal/files` (compare, backup, pretty paths), `internal/run`,
-`internal/ui`, `internal/secret`, `internal/plan`. If a second package needs
+`internal/ui`, `internal/secret` (masking), `internal/vault` (encrypted
+store, atomic 0600 writes), `internal/plan`. If a second package needs
 something another one already does, move it to a shared package instead of
 copy-pasting it.
 

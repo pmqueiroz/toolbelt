@@ -10,6 +10,9 @@ explain the *why* and the gotchas.
 - [architecture.md](./.refs/architecture.md) — `tb` package layout, the
   `tb setup` form → plan → confirm → execute flow, recipes (the extension
   point), dots, shell block, auth, git helpers, known gaps.
+- [secret.md](./.refs/secret.md) — `tb secret`: Bitwarden Secrets Manager
+  protocol port (pure Go, no cgo), encrypted local mirror, keyring key,
+  merge rules.
 - [ci-cd.md](./.refs/ci-cd.md) — CI matrix, GoReleaser releases, GitHub
   Pages one-liners, the names the installers and `tb update` depend on.
 - [incidents/](./.refs/incidents/README.md) — postmortems + standing rules;

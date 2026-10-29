@@ -6,6 +6,7 @@
 [code-url]: https://code.visualstudio.com/
 [go-url]: https://go.dev/
 [releases-url]: https://github.com/pmqueiroz/toolbelt/releases
+[bws-url]: https://bitwarden.com/products/secrets-manager/
 <!-- END_VARS -->
 
 ![cover](.github/assets/cover.png)
@@ -61,6 +62,10 @@ $ tb setup
 | <kbd>tb checkout [branch\|pr]</kbd> | switch branch (default branch when empty), pull and prune the other local branches |
 | <kbd>tb hot &lt;cmd&gt; &lt;files&gt;</kbd> | rerun a command every time one of the files changes |
 | <kbd>tb env [value]</kbd> | print a secret masked, or every env var masked when empty |
+| <kbd>tb secret set KEY [VALUE]</kbd> | store a secret, value from stdin when omitted (`echo v \| tb secret set k`) |
+| <kbd>tb secret get KEY</kbd> | print a secret, for piping (`export TOKEN=$(tb secret get TOKEN)`) |
+| <kbd>tb secret list [--reveal]</kbd> | list secrets, masked unless `--reveal` |
+| <kbd>tb secret connect</kbd> | link to a [Bitwarden Secrets Manager][bws-url] project (free plan works) and mirror it locally, encrypted |
 | <kbd>tb update</kbd> | update `tb` to the latest release |
 
 The shell sources alias `pr`, `commit`, `checkout` and `hot` to their `tb` command.
