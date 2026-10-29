@@ -34,8 +34,11 @@ These names are load-bearing; change them together or the installers and
   `internal/cli/update.go`, and the module path.
 
 Installers honour `TOOLBELT_BASE_URL` (point at a local `dist/` served over
-http to test a snapshot), `TOOLBELT_INSTALL_DIR`, `TOOLBELT_SKIP_BREW`,
-`TOOLBELT_SKIP_SETUP`.
+http to test a snapshot), `TOOLBELT_INSTALL_DIR`, `TOOLBELT_SKIP_BREW`.
+
+Installers only install: they never start `tb setup`, they print the
+command to run instead (the full path when the install dir is not yet on
+PATH, which `tb setup`'s shell block is what fixes on linux/macOS).
 
 ## Releasing
 

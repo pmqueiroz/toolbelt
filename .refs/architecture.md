@@ -72,8 +72,9 @@ Code is the truth. This file explains the *why* behind the shape it takes.
 The plan shown is the plan run: both read the same `[]Phase`. Descriptions
 must never contain secrets (`TestRenderListsEveryActionAndHidesSecrets`).
 
-`tb setup` refuses to run without a TTY; the bootstrap scripts reattach
-`/dev/tty` because their own stdin is the pipe.
+`tb setup` refuses to run without a TTY. The bootstrap scripts don't start
+it: they install `tb` (and brew on linux/macOS) and print the command, so
+installing never changes the machine's config by surprise.
 
 ## The extension point: recipes
 

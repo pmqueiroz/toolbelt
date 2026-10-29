@@ -22,7 +22,7 @@
 
 ### Recommended
 
-Install the latest release and start the setup
+Install the latest release, then run `tb setup`
 
 ```sh
 curl -fsSL https://toolbelt.pmqueiroz.dev/install.sh | sh
@@ -50,7 +50,6 @@ $ tb setup
 | <kbd>tb setup --verbose</kbd> | show the output of every command instead of only logging it |
 | <kbd>TOOLBELT_INSTALL_DIR</kbd> | where the installer puts `tb` (default `~/.local/bin`, `%LOCALAPPDATA%\Programs\toolbelt` on windows) |
 | <kbd>TOOLBELT_SKIP_BREW</kbd> | don't install homebrew when it's missing |
-| <kbd>TOOLBELT_SKIP_SETUP</kbd> | only install `tb`, don't run `tb setup` |
 
 ### Commands
 
