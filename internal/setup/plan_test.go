@@ -29,7 +29,7 @@ func testContext(t *testing.T) Context {
 	os.MkdirAll(home, 0o755)
 	return Context{
 		GOOS:  "linux",
-		Paths: dots.Paths{Home: home, Config: filepath.Join(root, "config")},
+		Paths: dots.Paths{Home: home, Config: filepath.Join(root, "config"), Store: filepath.Join(root, "store")},
 		Shell: shellrc.Env{GOOS: "linux", Home: home, Profile: func(string) (string, bool) { return "", false }},
 		Pkg:   fakeManager{},
 		Run:   run.New(false, nil),

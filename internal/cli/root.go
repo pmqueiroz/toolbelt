@@ -34,6 +34,7 @@ func Execute(build Build) {
 		newEnvCmd(),
 		newSecretCmd(),
 		newSetupCmd(),
+		newDotsCmd(),
 		newUpdateCmd(build),
 		newUninstallCmd(),
 	)

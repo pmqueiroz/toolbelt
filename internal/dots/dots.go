@@ -1,17 +1,10 @@
 package dots
 
 import (
-	"context"
 	"embed"
-	"fmt"
 	"os"
 	"path/filepath"
-	"slices"
 	"strings"
-	"time"
-
-	"github.com/pmqueiroz/toolbelt/internal/files"
-	"github.com/pmqueiroz/toolbelt/internal/plan"
 )
 
 //go:embed all:files
@@ -26,7 +19,12 @@ type Vars struct {
 type Paths struct {
 	Home   string
 	Config string
+	Store  string
 }
+
+func (p Paths) live(file string) string { return filepath.Join(p.Store, file) }
+func (p Paths) base(file string) string { return filepath.Join(p.Store, ".base", file) }
+func (p Paths) vars() string            { return filepath.Join(p.Store, "vars.json") }
 
 type Dot struct {
 	File   string
@@ -50,7 +48,7 @@ func DefaultPaths() (Paths, error) {
 	if err != nil {
 		return Paths{}, err
 	}
-	return Paths{Home: home, Config: config}, nil
+	return Paths{Home: home, Config: config, Store: filepath.Join(config, "toolbelt", "dots")}, nil
 }
 
 func Render(content string, vars Vars) string {
@@ -59,39 +57,4 @@ func Render(content string, vars Vars) string {
 		"{{email}}", vars.Email,
 		"{{passphrase}}", vars.Passphrase,
 	).Replace(content)
-}
-
-func Plan(goos string, paths Paths, vars Vars, now time.Time) ([]plan.Action, error) {
-	var actions []plan.Action
-	for _, d := range All {
-		if len(d.OS) > 0 && !slices.Contains(d.OS, goos) {
-			continue
-		}
-		raw, err := embedded.ReadFile("files/" + d.File)
-		if err != nil {
-			return nil, err
-		}
-		content := []byte(Render(string(raw), vars))
-		target := d.Target(paths)
-
-		state, err := files.Compare(target, content)
-		if err != nil {
-			return nil, err
-		}
-		if state == files.Same {
-			continue
-		}
-
-		description := fmt.Sprintf("write %s to %s", d.File, files.Pretty(target, paths.Home))
-		if state == files.Differs {
-			description += fmt.Sprintf(" (backup %s)", files.Pretty(files.BackupPath(target, now), paths.Home))
-		}
-		actions = append(actions, plan.Action{
-			Description: description,
-			Run: func(context.Context) error {
-				return files.WriteWithBackup(target, content, now)
-			},
-		})
-	}
-	return actions, nil
 }
