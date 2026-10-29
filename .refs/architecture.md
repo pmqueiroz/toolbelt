@@ -13,12 +13,14 @@ Code is the truth. This file explains the *why* behind the shape it takes.
 - `cmd/tb/main.go` — entry point. `version`/`commit`/`date` are stamped by
   GoReleaser ldflags; a plain `go build` reports `dev`.
 - `internal/cli/` — one cobra command per file (`setup`, `pr`, `commit`,
-  `checkout`, `hot`, `benchmark`, `env`, `secret`, `dots`, `update`, `uninstall`, `version`), wired in `root.go`.
+  `checkout`, `hot`, `benchmark`, `env`, `secret`, `ask`, `dots`, `update`, `uninstall`, `version`), wired in `root.go`.
   `root.go` runs everything under a context cancelled by Ctrl+C.
 - `internal/ui/` — the only place terminal styling lives: `log` wrapper
   (kitchen timestamps, like the old `gum log`), lipgloss styles,
   `Confirm`, `Spin` (falls back to a plain log line without a TTY), `Bar`
-  (a `█░` bar for a 0–1 fraction, clamped) and `Panel` (rounded titled box).
+  (a `█░` bar for a 0–1 fraction, clamped), `Panel` (rounded titled box) and
+  the `tb ask` answer components (`Paragraph`, `CommandLine`, `CodeBlock`,
+  `Bullets`, `Caution`).
 - `internal/run/` — `Runner` executes commands. `Run` sends output to the
   log file (or the terminal too with `--verbose`), `Output` captures stdout,
   `Attached` wires stdin/stdout for interactive commands (git pull, gh).
@@ -53,6 +55,9 @@ Code is the truth. This file explains the *why* behind the shape it takes.
   secret endpoints (see [secret.md](./secret.md)).
 - `internal/vault/` — the `tb secret` local store: AES-GCM file, data key in
   the OS keyring (file fallback), pure `Merge` of local and remote entries.
+- `internal/ai/` — `tb ask`: answer block schema and lenient `Parse`, the
+  system prompt, provider presets, the Anthropic SDK client and the
+  OpenAI-compatible client (see [ask.md](./ask.md)).
 - `internal/bench/` — `tb benchmark`: uuid workers, the base64-indexed bit
   bucket, estimates and per-OS memory/disk size (see
   [benchmark.md](./benchmark.md)).
@@ -297,7 +302,8 @@ the one matching `$SHELL`, bash as fallback) or, on Windows, the
 Block contents: `~/.local/bin` on PATH, brew shellenv, mise activate, zoxide
 init, `tb` completion (Cobra's built-in `tb completion <shell>`, eval'd at
 shell start), history size, `glo`/`repo`, and aliases from `pr`, `commit`,
-`checkout`, `hot` to `tb`. In zsh the completion line runs `compinit` first
+`checkout`, `hot`, `ask` to `tb` (`ask` is `noglob tb ask` in zsh, see
+[ask.md](./ask.md#input)). In zsh the completion line runs `compinit` first
 when `compdef` isn't defined yet (no framework like oh-my-zsh loaded it).
 Completion is bound to `tb` only; the aliases don't complete. `tb env` gets no alias on purpose: it would shadow
 the system `env` (`env FOO=1 cmd`, `env -i`). Every tool line is guarded so a
@@ -342,6 +348,11 @@ not a daily command.
 mirrors one Bitwarden Secrets Manager project. Details in
 [secret.md](./secret.md). It has no shell alias for the same reason `tb env`
 has none: a bare `secret` is too generic a name to claim.
+
+## Ask
+
+`tb ask` sends a question to an AI provider and renders the JSON blocks it
+answers with through `internal/ui`. Details in [ask.md](./ask.md).
 
 ## Known gaps
 

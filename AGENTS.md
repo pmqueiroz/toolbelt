@@ -13,6 +13,9 @@ explain the *why* and the gotchas.
 - [secret.md](./.refs/secret.md) — `tb secret`: Bitwarden Secrets Manager
   protocol port (pure Go, no cgo), encrypted local mirror, keyring key,
   merge rules.
+- [ask.md](./.refs/ask.md) — `tb ask`: server-driven answer blocks (JSON
+  schema → `ui` components), providers (Anthropic SDK + OpenAI-compatible),
+  `connect`, run-a-suggested-command flow.
 - [benchmark.md](./.refs/benchmark.md) — `tb benchmark`: uuid generation,
   base64-prefix bit bucket, find-all / fill-memory / fill-disk estimates.
 - [ci-cd.md](./.refs/ci-cd.md) — CI matrix, GoReleaser releases, GitHub

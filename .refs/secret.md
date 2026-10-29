@@ -63,8 +63,10 @@ are where to start.
 - **Store**: `os.UserConfigDir()/toolbelt/secrets.enc`.
   - Layout: `tbv1` magic, then a 12-byte nonce, then AES-256-GCM of the JSON
     `vault.Store`. The magic is also the AAD.
-  - The JSON holds the entries (`value`, plus the Bitwarden `id` once synced)
-    and the connection: token, region, org, project id and name.
+  - The JSON holds the entries (`value`, plus the Bitwarden `id` once synced),
+    the connection: token, region, org, project id and name, and the `tb ask`
+    provider connection under `ai` ([ask.md](./ask.md#storage)), which is
+    never mirrored to Bitwarden.
   - The access token lives inside the encrypted file, so only one keyring
     item exists.
 - **Data key**: 32 random bytes, base64, kept in the OS keyring
