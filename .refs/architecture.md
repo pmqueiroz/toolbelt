@@ -1,86 +1,152 @@
 # Architecture
 
-Personal dotfiles: one interactive bash installer (`install.sh`) that sets up
-a fresh macOS/Linux machine via Homebrew, installs selectable "recipes",
-copies templated config files into place, and walks through GitHub/npm/GPG
-auth. Mental model: `install.sh` is the host and owns the flow and UI;
-a recipe owns only installing one thing.
+toolbelt is one Go binary, `tb`, that sets up a Linux, macOS or Windows
+machine (`tb setup`) and carries everyday git helpers (`tb pr`, `tb checkout`,
+…). Mental model: every setup concern *describes* what it would do as a list
+of `plan.Action`s; `tb setup` collects them, shows them, and only runs them
+after confirmation.
 
 Code is the truth. This file explains the *why* behind the shape it takes.
 
 ## Layout
 
-- `install.sh` — entry point. Bootstraps `gum` and `coreutils` via brew,
-  sources every recipe, parses `--flag` options, then runs the phases in
-  order: credentials prompt → sudo auth → aliases → bash sources →
-  dependencies → dots → (confirm) ssh → npm token → gpg → `post_install`.
-- `recipes/<name>.sh` — one file per installable unit, each defining a single
-  `install_<name>` function. Sourced by `install.sh`; never executed alone.
-- `dots/` — config files copied to their target locations:
-  - `aliases.sh` — shell aliases/functions (`commit`, `checkout`, `pr`,
-    `hot`, `checksum`, `gum_log`, …). Copied to `~/dots-aliases.sh`, and also
-    sourced by `install.sh` itself, so the installer depends on its helpers
-    (`gum_log`, `checksum`, the `date`→`gdate` alias on macOS).
-  - `sources.sh` — block appended to `~/.bashrc` (sources the aliases file,
-    zoxide init, history size).
-  - `.gitconfig`, `.tmux.config`, `vscode-settings.json`, `keybindings.json`
-    — mapped to their target paths in the `dots` associative array in
-    `install.sh`.
-  - `gpg_template.gpg`, `gnome-terminal-profile.dconf` — templates consumed
-    by the gpg phase and the `gnome_terminal` recipe.
-  - `keychron_k6_pro.json` — keyboard config, not installed by the script.
-- `bundler.rb` — inlines every `source`d file into `install.sh` so it can run
-  standalone via `curl | bash`. Run only by CI (see [ci-cd.md](./ci-cd.md)).
-- `.github/assets/` — logos for the readme.
+- `cmd/tb/main.go` — entry point. `version`/`commit`/`date` are stamped by
+  GoReleaser ldflags; a plain `go build` reports `dev`.
+- `internal/cli/` — one cobra command per file (`setup`, `pr`, `commit`,
+  `checkout`, `hot`, `penv`, `update`, `version`), wired in `root.go`.
+  `root.go` runs everything under a context cancelled by Ctrl+C.
+- `internal/ui/` — the only place terminal styling lives: `log` wrapper
+  (kitchen timestamps, like the old `gum log`), lipgloss styles,
+  `Confirm`, `Spin` (falls back to a plain log line without a TTY).
+- `internal/run/` — `Runner` executes commands. `Run` sends output to the
+  log file (or the terminal too with `--verbose`), `Output` captures stdout,
+  `Attached` wires stdin/stdout for interactive commands (git pull, gh).
+- `internal/plan/` — `Action{Description, Run}` and `Dedupe`.
+- `internal/pkgmgr/` — `Manager` interface with `brew` (linux, darwin) and
+  `winget` (windows).
+- `internal/recipes/` — installable units (see below).
+- `internal/dots/` — embedded dot files (`files/`) and their per-OS targets.
+- `internal/shellrc/` — the managed block in shell rc files (`blocks/`).
+- `internal/auth/` — ssh key, npm token, gpg signing key.
+- `internal/files/` — compare / write-with-backup / `~` pretty paths, shared
+  by dots and shellrc.
+- `internal/secret/` — masking used by `tb penv` and the npm plan line.
+- `internal/gitx/` — git/gh queries and the pure rules behind `tb checkout`.
+- `internal/setup/` — the `tb setup` flow: form, plan, execute, summary.
+- `scripts/` — `install.sh` / `install.ps1` bootstrap one-liners, served by
+  GitHub Pages at `https://toolbelt.pmqueiroz.dev` (`CNAME` file included).
+- `dots/keychron_k6_pro.json` — keyboard config kept for reference; nothing
+  installs it.
+
+## tb setup
+
+1. **Form** (`setup.Ask`): one huh form, nothing runs before it is
+   submitted. Identity is prefilled from the global git config. Groups for
+   recipes, npm token and gpg passphrase are hidden unless their step is
+   selected. There are no skip flags; unselecting a step is the skip.
+2. **Plan** (`setup.BuildPlan`): `Answers` + `Context` → ordered `[]Phase`:
+   shell sources → dependencies → dot files → ssh key → npm token → gpg key.
+   Steps whose work is already done contribute no actions (identical dot,
+   existing ssh key, rc block already current), so a rerun shows only real
+   changes. Building the plan only reads; it never writes.
+3. **Confirm**: `setup.Render` shows every `Description`; "no" exits with
+   nothing changed, which doubles as a dry run.
+4. **Execute**: each action under a spinner; failures are collected, not
+   fatal, and reported with the log path at the end (exit code 1).
+5. **Summary**: done banner plus ssh/gpg public keys and the GitHub settings
+   URLs to paste them into.
+
+The plan shown is the plan run: both read the same `[]Phase`. Descriptions
+must never contain secrets (`TestRenderListsEveryActionAndHidesSecrets`).
+
+`tb setup` refuses to run without a TTY; the bootstrap scripts reattach
+`/dev/tty` because their own stdin is the pipe.
 
 ## The extension point: recipes
 
-Contract: a file `recipes/<name>.sh` defining `install_<name>`. The installer
-calls it with `eval install_"$dep"` for each chosen dependency, then re-sources
-`~/.bashrc` so later recipes see PATH changes (e.g. `asdf` before `node`).
+`Recipe{Name, Default, OS, Plan func(Env) []plan.Action}` in
+`internal/recipes/`, one file per recipe, registered in order in `All()`
+(`recipe.go`). Order is install order.
 
-Recipes may use the installer's globals: `_` (run a command, logging output
-to the logfile unless `--verbose`), `gum_log`, `render_string`, `$user_name`,
-`$user_email`, and the `./tmp` scratch dir.
+Packages are declared once with both IDs:
+`pkgmgr.Package{Name, Brew, Cask, Winget, OS}`. `installPackages` drops
+packages the current manager can't install (casks on linux, brew-only tools
+on windows, `OS`-restricted ones), and at run time skips a package when its
+`Name` is already on PATH or the manager reports it installed — so tools
+installed some other way (apt, manual) are not reinstalled.
 
-Adding a recipe:
-1. Create `recipes/<name>.sh` with `install_<name>`. Hyphens in the file name
-   are fine; the function name and choice name use underscores
-   (`gnome-terminal.sh` → `install_gnome_terminal`).
-2. Add `source recipes/<name>.sh` near the top of `install.sh`.
-3. Add `<name>` to `dependencies` (preselected) or `additional_dependencies`
-   (opt-in) in the dependencies phase. Order in the arrays is install order.
+Adding a recipe: create `internal/recipes/<name>.go` with a `Recipe` var,
+add it to `All()`, give every package both a brew name and a winget ID
+(verify both exist), add a `<name>_test.go`.
 
-## Shared state
+Current recipes: `essentials`, `node`, `pnpm`, `code` (default) and `apps`,
+`android` (macOS/Windows only, because brew casks don't exist on linux).
+`node` and `pnpm` both start with "install mise"; `plan.Dedupe` keeps one.
 
-Everything is bash globals in `install.sh`: `options` (parsed flags),
-`logfile`, `user_name`, `user_email`, `passphrase` (sudo password, reused as
-the GPG key passphrase). The sudo timestamp is primed once by `auth` and reset
-in `post_install`.
+Why mise instead of asdf: asdf has no Windows support; mise runs everywhere
+with the same commands. Why fastfetch: neofetch was removed from Homebrew.
 
-## Reusable mechanics
+## Package managers
 
-- **Templating** — `render_string key value …` replaces `{{key}}` in stdin.
-  Used for every file in `dots/` and the gpg/dconf templates. Placeholders in
-  use: `{{username}}`, `{{email}}`, `{{passphrase}}`.
-- **Managed `.bashrc` block** — `sources.sh` lives between
-  `# ---BEGIN DOTFILES SOURCE---` / `# ---END DOTFILES SOURCE---` markers.
-  On rerun, the installed block's md5 is compared to `dots/sources.sh`; if it
-  differs, `.bashrc` is backed up to `~/.bashrc.<timestamp>.bak` and the block
-  is replaced. Idempotent otherwise.
-- **Local vs. remote source** — when run inside the git checkout, files are
-  copied from the repo; otherwise they're fetched from
-  `raw.githubusercontent.com/pmqueiroz/dotfiles/master`.
-- **Logging** — `gum_log <level>`; output of wrapped commands goes to
-  `peam_dotfiles_<timestamp>.log` (gitignored).
+- brew is found on PATH or at `/opt/homebrew`, `/usr/local`,
+  `/home/linuxbrew/.linuxbrew`, `~/.linuxbrew`. `tb` does not install brew:
+  that needs sudo and an interactive prompt, so `scripts/install.sh` does it
+  before `tb setup`.
+- winget is assumed present (Windows 10 1809+/11).
+- `PrependPath` puts the manager's bin dir first in this process's PATH so
+  tools installed mid-run (mise, gpg) are usable by later actions.
+
+A missing manager only fails the plan if the dependencies step is selected.
+
+## Dot files
+
+Embedded with `//go:embed all:files` (`all:` because they are dotfiles).
+`{{username}}`, `{{email}}`, `{{passphrase}}` are replaced by `dots.Render`.
+Targets use `os.UserConfigDir()`, which gives the right VS Code folder per OS.
+`.tmux.conf` is skipped on Windows. Changed files are backed up to
+`<file>.<timestamp>.bak`; identical files are left alone.
+
+`.gitconfig` includes `~/.gitconfig.local`. Machine-specific git settings
+(`user.signingkey`, Windows `gpg.program`) go there, so rerunning the dots
+step never wipes the signing key.
+
+## Shell sources
+
+`shellrc.Targets` picks `~/.bashrc` and/or `~/.zshrc` (whichever exist, plus
+the one matching `$SHELL`, bash as fallback) or, on Windows, the
+`$PROFILE.CurrentUserCurrentHost` of each installed PowerShell (`pwsh`,
+`powershell`). The block between `# ---BEGIN TOOLBELT---` and
+`# ---END TOOLBELT---` is replaced in place; the legacy
+`# ---BEGIN DOTFILES SOURCE---` block from the old bash installer is removed.
+Block contents: `~/.local/bin` on PATH, brew shellenv, mise activate, zoxide
+init, history size, `glo`/`repo`, and aliases from `pr`, `commit`,
+`checkout`, `hot`, `penv` to `tb`. Every tool line is guarded so a missing
+tool doesn't break the shell.
+
+## Auth
+
+- ssh: `ssh-keygen -t ed25519` only when `~/.ssh/id_ed25519` is missing.
+- npm: writes `//npm.pkg.github.com/:_authToken=` into `~/.npmrc` (mode
+  0600), replacing a previous line. No `npm-cli-login`, so no Node needed.
+- gpg: reuses an existing secret key for the email, otherwise generates one
+  from `auth/gpg_template.gpg` via a temp file that is always removed (it
+  holds the passphrase). On Windows, git is pointed at GnuPG's `gpg.exe`
+  because Git for Windows ships its own gpg.
+
+## Git helpers
+
+`tb checkout` deletes every other local branch. A branch checked out in a
+worktree is kept when it has uncommitted changes, was never pushed, or has
+unpushed commits (`gitx.BranchState.KeepReason`); otherwise the worktree is
+removed first. A failed checkout stops; a failed pull only warns.
+
+`tb hot` polls size+mtime of each file every 500ms and runs the command via
+`sh -c` or `powershell -Command`.
 
 ## Known gaps
 
-- `~/dots-aliases.sh` is only written if it doesn't exist, so alias changes
-  don't reach an existing machine on rerun. Delete the file first.
-- The dots phase writes the rendered file from `./dots/` even after fetching
-  the remote copy, so the remote-fetch branch is effectively broken when not
-  run from a checkout.
-- `node` recipe pins Node 18.20.2 (EOL).
-- `install_code` exits the whole installer if `code` isn't on PATH.
-- Requires bash 4+ (associative arrays, `mapfile`); stock macOS bash is 3.2.
+- Not yet exercised on real Windows or macOS beyond CI unit tests: winget
+  installs, PowerShell profile block, gpg on Windows.
+- `tb commit`/`tb pr` interactive paths have no automated test.
+- `apps`/`android` have no linux equivalent (no flatpak support).
+- On linux the `code` recipe needs VS Code already installed.

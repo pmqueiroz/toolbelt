@@ -7,11 +7,11 @@ explain the *why* and the gotchas.
 
 - [conventions.md](./.refs/conventions.md) — authoring rules: **no comments in
   code** (docs go in `.refs/`), reusable-component discipline. Read first.
-- [architecture.md](./.refs/architecture.md) — installer flow, recipes
-  (the extension point), dots + templating, managed `.bashrc` block, known
-  gaps.
-- [ci-cd.md](./.refs/ci-cd.md) — `bundler.rb` build and the force-pushed
-  `release` branch.
+- [architecture.md](./.refs/architecture.md) — `tb` package layout, the
+  `tb setup` form → plan → confirm → execute flow, recipes (the extension
+  point), dots, shell block, auth, git helpers, known gaps.
+- [ci-cd.md](./.refs/ci-cd.md) — CI matrix, GoReleaser releases, GitHub
+  Pages one-liners, the names the installers and `tb update` depend on.
 - [incidents/](./.refs/incidents/README.md) — postmortems + standing rules;
   **read before any migration or destructive op**.
 

@@ -19,19 +19,33 @@ entry instead.
 Name things well enough that the code reads without prose. Extract a
 well-named function or variable instead of writing a comment.
 
-## Shell style
+Compiler directives are not comments and are allowed: `//go:embed` is the
+only one in use.
 
-- Bash only, `#!/usr/bin/env bash` shebang, `shopt -s expand_aliases` at the
-  top of any file that relies on aliases from `dots/aliases.sh`.
-- 3-space indent in `install.sh`, `dots/aliases.sh` and most recipes (some
-  recipes use 2; match the file being edited).
-- User-facing output goes through `gum_log <level>` / `gum style`, never bare
-  `echo` (exception: the pre-`gum` bootstrap at the top of `install.sh`).
-- Log messages are lower-case.
-- Wrap noisy commands in `_` so their output lands in the logfile unless
-  `--verbose`.
-- Anything rendered from `dots/` uses `{{placeholder}}` + `render_string`;
-  never hardcode the user's name or email in a dot.
+## Go style
+
+- `gofmt` is enforced by CI.
+- Tests: one `<file>_test.go` per source file, in the same package so
+  unexported functions can be tested directly. Name tests after the behavior
+  (`TestApplyRemovesLegacyDotfilesBlock`), not the function alone.
+- Keep logic that decides things pure and separate from code that touches
+  the machine (`shellrc.Apply`, `gitx.BranchState.KeepReason`,
+  `auth.UpsertNpmToken`), so it can be tested without a shell, git repo or
+  TTY. Inject what varies (`shellrc.Env.Profile`, `dots.Paths`, fake
+  `pkgmgr.Manager`) instead of reading globals.
+- Paths in tests go through `filepath.Join` / `filepath.FromSlash`; CI runs
+  on Windows.
+- User-facing output goes through `internal/ui` (`ui.Info`, `ui.Warn`, …),
+  never bare `fmt.Print` (exception: command results meant for piping, like
+  `tb version` and `tb penv`, which write to `cmd.OutOrStdout()`).
+- Log and error messages are lower-case.
+- External commands go through `run.Runner`, never `exec.Command` directly,
+  so they are logged (exception: `shellrc.powershellProfile`, which runs
+  while planning, before there is a runner).
+- Plan action descriptions never contain secrets; mask with
+  `secret.Mask`.
+- Anything rendered from `internal/dots/files/` uses `{{placeholder}}` +
+  `dots.Render`; never hardcode the user's name or email in a dot.
 
 ## Documentation lives in `.refs/`
 
@@ -42,12 +56,12 @@ follow-up — the Operating Protocol in AGENTS.md is binding.
 
 ## Helpers must be reusable, and reused
 
-One concept = one helper. Shared shell helpers live in `dots/aliases.sh`
-(available both in the user's shell and inside `install.sh`); installer-only
-helpers live in `install.sh`. Before writing a new function, check both. If a
-recipe needs something another recipe already does, move it to a shared
-helper instead of copy-pasting it.
+One concept = one helper. Before writing a new function, check the shared
+packages: `internal/files` (compare, backup, pretty paths), `internal/run`,
+`internal/ui`, `internal/secret`, `internal/plan`. If a second package needs
+something another one already does, move it to a shared package instead of
+copy-pasting it.
 
 Each installable unit is its own recipe (see
 [architecture.md](./architecture.md#the-extension-point-recipes)); don't grow
-install logic for a new tool inline in `install.sh`.
+install logic for a new tool inside `internal/setup`.
