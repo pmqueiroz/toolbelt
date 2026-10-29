@@ -205,6 +205,12 @@ worktree is kept when it has uncommitted changes, was never pushed, or has
 unpushed commits (`gitx.BranchState.KeepReason`); otherwise the worktree is
 removed first. A failed checkout stops; a failed pull only warns.
 
+With no argument, `tb checkout` targets `gitx.DefaultBranch`: it reads
+`refs/remotes/origin/HEAD`, which only `git clone` creates. Repos made with
+`git init` + `git remote add` lack it, so on failure it runs
+`git remote set-head origin --auto` (asks the remote, writes the ref) and
+retries, then falls back to a local `main` or `master`.
+
 `tb hot` polls size+mtime of each file every 500ms and runs the command via
 `sh -c` or `powershell -Command`.
 
