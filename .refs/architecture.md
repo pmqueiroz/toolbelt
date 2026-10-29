@@ -13,7 +13,7 @@ Code is the truth. This file explains the *why* behind the shape it takes.
 - `cmd/tb/main.go` — entry point. `version`/`commit`/`date` are stamped by
   GoReleaser ldflags; a plain `go build` reports `dev`.
 - `internal/cli/` — one cobra command per file (`setup`, `pr`, `commit`,
-  `checkout`, `hot`, `benchmark`, `env`, `secret`, `update`, `version`), wired in `root.go`.
+  `checkout`, `hot`, `benchmark`, `env`, `secret`, `update`, `uninstall`, `version`), wired in `root.go`.
   `root.go` runs everything under a context cancelled by Ctrl+C.
 - `internal/ui/` — the only place terminal styling lives: `log` wrapper
   (kitchen timestamps, like the old `gum log`), lipgloss styles,
@@ -84,6 +84,32 @@ must never contain secrets (`TestRenderListsEveryActionAndHidesSecrets`).
 `tb setup` refuses to run without a TTY. The bootstrap scripts don't start
 it: they install `tb` (and brew on linux/macOS) and print the command, so
 installing never changes the machine's config by surprise.
+
+## tb uninstall
+
+`internal/cli/uninstall.go` builds `[]setup.Phase` and reuses
+`setup.Render` / `setup.Execute`, so it shows the plan and asks before
+changing anything, like `tb setup`. Without a TTY it refuses unless `--yes`.
+
+1. **shell sources** — `shellrc.RemovalPlan` checks every rc file `tb setup`
+   could have written (`~/.bashrc` and `~/.zshrc` regardless of `$SHELL`, or
+   each PowerShell profile) and strips the toolbelt block and the legacy
+   dotfiles block with `shellrc.Remove`, backing the file up first. Files
+   without a block get no action. `Apply` uses `Remove` too, so both agree on
+   what the block is.
+2. **secrets** — only with `--purge`: `vault.Purge` (see
+   [secret.md](./secret.md#command-behavior)). Without it, an existing store
+   is kept and a warning says so *before* the confirm, because once the
+   binary is gone there is no `tb` left to purge with.
+3. **binary** — the resolved `os.Executable()` (symlinks followed). Unix just
+   unlinks it while it runs. Windows can't delete a running exe but can
+   rename it, so it is moved to `%TEMP%\tb_uninstalled_<timestamp>.exe` for
+   the OS temp cleanup to collect. Last on purpose: a failure earlier leaves
+   `tb` around to retry.
+
+What `tb setup` installed (packages, dot files, ssh/gpg keys, `~/.npmrc`,
+`~/.gitconfig.local`) is left alone: those are the machine's config now, not
+tb's, and other tools depend on them.
 
 ## The extension point: recipes
 
@@ -203,3 +229,5 @@ has none: a bare `secret` is too generic a name to claim.
 - `tb commit`/`tb pr` interactive paths have no automated test.
 - `apps`/`android` have no linux equivalent (no flatpak support).
 - On linux the `code` recipe needs VS Code already installed.
+- `tb uninstall` on Windows leaves the install dir entry that `install.ps1`
+  added to the user `Path`, and the empty install dir.

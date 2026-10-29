@@ -67,6 +67,7 @@ $ tb setup
 | <kbd>tb secret list [--reveal]</kbd> | list secrets, masked unless `--reveal` |
 | <kbd>tb secret connect</kbd> | link to a [Bitwarden Secrets Manager][bws-url] project (free plan works) and mirror it locally, encrypted |
 | <kbd>tb update</kbd> | update `tb` to the latest release |
+| <kbd>tb uninstall [--purge]</kbd> | remove `tb` and its shell block, plus the local secret store with `--purge` |
 
 The shell sources alias `pr`, `commit`, `checkout` and `hot` to their `tb` command.
 

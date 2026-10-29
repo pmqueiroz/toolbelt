@@ -114,6 +114,13 @@ are where to start.
     instead of being dropped.
 - **Duplicate keys**: Bitwarden allows the same key twice in a project. The
   first one wins and a warning names the key.
+- **Purge** (`vault.Purge`, run by `tb uninstall --purge`): removes
+  `secrets.enc` and `secret.key`, then the `toolbelt` config dir only when it
+  is left empty, then the keyring item. A missing keyring item is fine; an
+  unreachable keyring is ignored when a `secret.key` existed (the key lived
+  in the file, so the keyring never held it), otherwise it is an error. Files
+  go before the keyring so a keyring failure never leaves a store whose key
+  is gone. Bitwarden is never touched: purging only drops the local mirror.
 
 ## Known gaps
 
