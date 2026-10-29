@@ -88,6 +88,10 @@ Adding a recipe: create `internal/recipes/<name>.go` with a `Recipe` var,
 add it to `All()`, give every package both a brew name and a winget ID
 (verify both exist), add a `<name>_test.go`.
 
+`code` installs extensions one at a time, each retried 3 times with 2s/4s
+backoff (`run.Retry`): the marketplace answers 503 now and then, and one
+flaky extension used to fail the whole action.
+
 Current recipes: `essentials`, `node`, `pnpm`, `code` (default) and `apps`,
 `android` (macOS/Windows only, because brew casks don't exist on linux).
 `node` and `pnpm` both start with "install mise"; `plan.Dedupe` keeps one.
@@ -104,6 +108,14 @@ with the same commands. Why fastfetch: neofetch was removed from Homebrew.
 - winget is assumed present (Windows 10 1809+/11).
 - `PrependPath` puts the manager's bin dir first in this process's PATH so
   tools installed mid-run (mise, gpg) are usable by later actions.
+- winget doesn't always put a portable package's alias in `WinGet\Links`;
+  it often edits the user PATH in the registry instead ("path environment
+  variable modified, restart your shell"), which the running process never
+  sees. So after every winget install, `RefreshPath` appends the persisted
+  user + machine `Path` (`HKCU\Environment`, `HKLM\...\Session
+  Manager\Environment`, `%VAR%` expanded) to this process's PATH. Without
+  it `mise use` failed right after `winget install jdx.mise`. No-op off
+  Windows.
 
 A missing manager only fails the plan if the dependencies step is selected.
 

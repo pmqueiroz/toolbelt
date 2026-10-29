@@ -19,8 +19,9 @@ entry instead.
 Name things well enough that the code reads without prose. Extract a
 well-named function or variable instead of writing a comment.
 
-Compiler directives are not comments and are allowed: `//go:embed` is the
-only one in use.
+Compiler directives are not comments and are allowed: `//go:embed`, and
+`//go:build` for OS-specific files without a `_<os>.go` suffix counterpart
+(`pkgmgr/registry_other.go`).
 
 ## Go style
 
