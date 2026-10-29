@@ -51,7 +51,7 @@ func findBrew() (string, error) {
 func (b *brew) Name() string { return "brew" }
 
 func (b *brew) ID(p Package) string {
-	if p.Cask && b.goos != "darwin" {
+	if p.Cask && b.goos != "darwin" && !(p.CaskOnLinux && b.goos == "linux") {
 		return ""
 	}
 	return p.Brew

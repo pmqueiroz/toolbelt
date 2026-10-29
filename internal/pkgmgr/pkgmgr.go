@@ -10,11 +10,12 @@ import (
 )
 
 type Package struct {
-	Name   string
-	Brew   string
-	Cask   bool
-	Winget string
-	OS     []string
+	Name        string
+	Brew        string
+	Cask        bool
+	CaskOnLinux bool
+	Winget      string
+	OS          []string
 }
 
 type Manager interface {

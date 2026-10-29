@@ -10,6 +10,7 @@ import (
 func TestSupports(t *testing.T) {
 	formula := Package{Name: "rg", Brew: "ripgrep", Winget: "BurntSushi.ripgrep.MSVC"}
 	cask := Package{Name: "slack", Brew: "slack", Cask: true, Winget: "SlackTechnologies.Slack"}
+	linuxCask := Package{Name: "claude", Brew: "claude-code", Cask: true, CaskOnLinux: true, Winget: "Anthropic.ClaudeCode"}
 	brewOnly := Package{Name: "tmux", Brew: "tmux"}
 	linuxOnly := Package{Name: "xsel", Brew: "xsel", OS: []string{"linux"}}
 
@@ -23,6 +24,7 @@ func TestSupports(t *testing.T) {
 		{"formula on linux", &brew{goos: "linux"}, "linux", formula, true},
 		{"cask on darwin", &brew{goos: "darwin"}, "darwin", cask, true},
 		{"cask on linux", &brew{goos: "linux"}, "linux", cask, false},
+		{"linux cask on linux", &brew{goos: "linux"}, "linux", linuxCask, true},
 		{"cask on windows", &winget{}, "windows", cask, true},
 		{"brew only on windows", &winget{}, "windows", brewOnly, false},
 		{"linux only on darwin", &brew{goos: "darwin"}, "darwin", linuxOnly, false},
