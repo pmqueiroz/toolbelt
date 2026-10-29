@@ -19,6 +19,8 @@ import (
 const (
 	customDuration   = "custom"
 	progressInterval = 15 * time.Second
+	shortBenchmark   = 5 * time.Second
+	longBenchmark    = 10 * time.Second
 )
 
 func newBenchmarkCmd() *cobra.Command {
@@ -62,20 +64,20 @@ func newBenchmarkCmd() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().DurationVarP(&duration, "duration", "d", time.Minute, "how long to generate uuids (1m, 5m or any duration like 90s)")
+	cmd.Flags().DurationVarP(&duration, "duration", "d", shortBenchmark, "how long to generate uuids (5s, 10s or any duration like 1m)")
 	return cmd
 }
 
 func askDuration() (time.Duration, error) {
-	choice := time.Minute.String()
+	choice := shortBenchmark.String()
 	custom := ""
 	err := huh.NewForm(
 		huh.NewGroup(
 			huh.NewSelect[string]().
 				Title("How long should the benchmark run?").
 				Options(
-					huh.NewOption("1 minute", time.Minute.String()),
-					huh.NewOption("5 minutes", (5*time.Minute).String()),
+					huh.NewOption("5 seconds", shortBenchmark.String()),
+					huh.NewOption("10 seconds", longBenchmark.String()),
 					huh.NewOption("custom", customDuration),
 				).
 				Value(&choice),
@@ -83,7 +85,7 @@ func askDuration() (time.Duration, error) {
 		huh.NewGroup(
 			huh.NewInput().
 				Title("Duration").
-				Placeholder("90s, 10m, 1h").
+				Placeholder("30s, 1m, 5m").
 				Validate(func(s string) error {
 					_, err := parseBenchmarkDuration(s)
 					return err
