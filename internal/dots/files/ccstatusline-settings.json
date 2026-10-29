@@ -1,0 +1,80 @@
+{
+  "version": 4,
+  "lines": [
+    [
+      {
+        "id": "5",
+        "type": "git-branch",
+        "color": "brightMagenta"
+      },
+      {
+        "id": "2",
+        "type": "separator",
+        "character": " "
+      },
+      {
+        "id": "7",
+        "type": "git-changes",
+        "color": "magenta"
+      },
+      {
+        "id": "b4f83c7d-9841-46a7-b4fe-dcbc47239cbd",
+        "type": "flex-separator"
+      },
+      {
+        "id": "1",
+        "type": "session-usage",
+        "color": "magenta",
+        "rawValue": true
+      },
+      {
+        "id": "6",
+        "type": "custom-symbol",
+        "character": ",",
+        "customSymbol": "/",
+        "color": "brightBlack"
+      },
+      {
+        "id": "3",
+        "type": "weekly-usage",
+        "color": "brightMagenta",
+        "rawValue": true
+      },
+      {
+        "id": "4",
+        "type": "separator",
+        "character": " "
+      },
+      {
+        "id": "f3a1ce28-04c0-4962-a48d-06757269f61f",
+        "type": "reset-timer",
+        "rawValue": true
+      }
+    ],
+    [],
+    []
+  ],
+  "flexMode": "full",
+  "compactThreshold": 60,
+  "colorLevel": 2,
+  "defaultPaddingSide": "both",
+  "inheritSeparatorColors": false,
+  "globalBold": false,
+  "gitCacheTtlSeconds": 5,
+  "terminalWidthCacheTtlSeconds": 5,
+  "customCommandCacheTtlSeconds": 0,
+  "minimalistMode": false,
+  "powerline": {
+    "enabled": false,
+    "separators": [
+      ""
+    ],
+    "separatorInvertBackground": [
+      false
+    ],
+    "startCaps": [],
+    "endCaps": [],
+    "autoAlign": false,
+    "continueThemeAcrossLines": false
+  }
+}

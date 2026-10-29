@@ -38,6 +38,7 @@ var All = []Dot{
 	{File: "vscode-settings.json", Target: func(p Paths) string { return filepath.Join(p.Config, "Code", "User", "settings.json") }},
 	{File: "keybindings.json", Target: func(p Paths) string { return filepath.Join(p.Config, "Code", "User", "keybindings.json") }},
 	{File: "claude-settings.json", Target: func(p Paths) string { return filepath.Join(p.Home, ".claude", "settings.json") }},
+	{File: "ccstatusline-settings.json", Target: func(p Paths) string { return filepath.Join(p.Home, ".config", "ccstatusline", "settings.json") }},
 }
 
 func DefaultPaths() (Paths, error) {
