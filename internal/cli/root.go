@@ -30,6 +30,7 @@ func Execute(build Build) {
 		newCommitCmd(),
 		newCheckoutCmd(),
 		newHotCmd(),
+		newBenchmarkCmd(),
 		newEnvCmd(),
 		newSecretCmd(),
 		newSetupCmd(),
