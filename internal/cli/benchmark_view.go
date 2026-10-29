@@ -19,7 +19,7 @@ import (
 const (
 	barWidth     = 30
 	refreshEvery = 200 * time.Millisecond
-	labelWidth   = 16
+	labelWidth   = 19
 )
 
 type benchmarkProgress struct {
@@ -142,9 +142,10 @@ func renderBenchmark(result bench.Result, bucket *bench.Bucket, capacity bench.C
 	set := bucket.Set()
 	bucketDone := float64(set) / float64(bucket.Indexes())
 	findAll := bench.SecondsToFindAll(rate)
-	fillMemory := bench.SecondsToFill(capacity.Memory, rate)
-	fillDisk := bench.SecondsToFill(capacity.Disk, rate)
-	longest := math.Max(findAll, math.Max(fillMemory, fillDisk))
+	fillMemory := bench.SecondsToFill(float64(capacity.Memory), rate)
+	fillDisk := bench.SecondsToFill(float64(capacity.Disk), rate)
+	fillEarth := bench.SecondsToFill(bench.EarthStorage, rate)
+	longest := math.Max(findAll, fillEarth)
 
 	stats := strings.Join([]string{
 		row("uuids generated", fmt.Sprintf("%s in %s",
@@ -171,6 +172,10 @@ func renderBenchmark(result bench.Result, bucket *bench.Bucket, capacity bench.C
 			ui.Bar(barWidth, logFraction(fillDisk, longest)),
 			bench.FormatSeconds(fillDisk),
 			humanize.IBytes(capacity.Disk))),
+		row("fill earth storage", fmt.Sprintf("%s %s · %s world estimate",
+			ui.Bar(barWidth, logFraction(fillEarth, longest)),
+			bench.FormatSeconds(fillEarth),
+			humanize.SI(bench.EarthStorage, "B"))),
 		row("find every uuid", fmt.Sprintf("%s %s",
 			ui.Bar(barWidth, logFraction(findAll, longest)),
 			bench.FormatSeconds(findAll))),

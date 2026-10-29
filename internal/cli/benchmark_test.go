@@ -39,7 +39,7 @@ func TestRenderBenchmarkProgressShowsTimeCountAndBucket(t *testing.T) {
 func TestRenderBenchmarkShowsEveryEstimate(t *testing.T) {
 	result := bench.Result{Generated: 1 << 20, Found: 7, Elapsed: time.Second, Workers: 4}
 	out := ansi.Strip(renderBenchmark(result, bench.NewBucket(2), bench.Capacity{Memory: 1 << 30, Disk: 1 << 40}))
-	for _, want := range []string{"1,048,576 in 1s", "4 workers", "7 uuids", "fill memory", "1.0 GiB ram", "fill storage", "1.0 TiB free", "find every uuid", "years"} {
+	for _, want := range []string{"1,048,576 in 1s", "4 workers", "7 uuids", "fill memory", "1.0 GiB ram", "fill storage", "1.0 TiB free", "fill earth storage", "18 ZB world estimate", "find every uuid", "years"} {
 		if !strings.Contains(out, want) {
 			t.Errorf("results missing %q:\n%s", want, out)
 		}
