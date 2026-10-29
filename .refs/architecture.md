@@ -154,8 +154,11 @@ the one matching `$SHELL`, bash as fallback) or, on Windows, the
 `# ---END TOOLBELT---` is replaced in place; the legacy
 `# ---BEGIN DOTFILES SOURCE---` block from the old bash installer is removed.
 Block contents: `~/.local/bin` on PATH, brew shellenv, mise activate, zoxide
-init, history size, `glo`/`repo`, and aliases from `pr`, `commit`,
-`checkout`, `hot` to `tb`. `tb env` gets no alias on purpose: it would shadow
+init, `tb` completion (Cobra's built-in `tb completion <shell>`, eval'd at
+shell start), history size, `glo`/`repo`, and aliases from `pr`, `commit`,
+`checkout`, `hot` to `tb`. In zsh the completion line runs `compinit` first
+when `compdef` isn't defined yet (no framework like oh-my-zsh loaded it).
+Completion is bound to `tb` only; the aliases don't complete. `tb env` gets no alias on purpose: it would shadow
 the system `env` (`env FOO=1 cmd`, `env -i`). Every tool line is guarded so a
 missing tool doesn't break the shell.
 
