@@ -33,6 +33,7 @@ func Execute(build Build) {
 		newBenchmarkCmd(),
 		newEnvCmd(),
 		newSecretCmd(),
+		newAskCmd(),
 		newSetupCmd(),
 		newDotsCmd(),
 		newUpdateCmd(build),

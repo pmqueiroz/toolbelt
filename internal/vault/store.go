@@ -35,6 +35,13 @@ type Connection struct {
 	ProjectName    string `json:"projectName"`
 }
 
+type AIConnection struct {
+	Provider string `json:"provider"`
+	Model    string `json:"model"`
+	APIKey   string `json:"apiKey,omitempty"`
+	BaseURL  string `json:"baseUrl,omitempty"`
+}
+
 type Entry struct {
 	Value string `json:"value"`
 	ID    string `json:"id,omitempty"`
@@ -42,6 +49,7 @@ type Entry struct {
 
 type Store struct {
 	Connection *Connection      `json:"connection,omitempty"`
+	AI         *AIConnection    `json:"ai,omitempty"`
 	Entries    map[string]Entry `json:"entries"`
 }
 
