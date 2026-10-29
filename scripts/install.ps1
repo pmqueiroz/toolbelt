@@ -50,7 +50,5 @@
     $tb = Join-Path $installDir 'tb.exe'
     Write-Step "installed $(& $tb version) to $installDir"
 
-    if (-not $env:TOOLBELT_SKIP_SETUP) {
-        & $tb setup
-    }
+    Write-Step "run 'tb setup' to set up this machine"
 }

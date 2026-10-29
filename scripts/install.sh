@@ -67,7 +67,9 @@ if [ -z "${TOOLBELT_SKIP_BREW:-}" ] && ! has_brew; then
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" </dev/tty
 fi
 
-if [ -n "${TOOLBELT_SKIP_SETUP:-}" ]; then
-  exit 0
+if [ "$(command -v tb 2>/dev/null)" = "$install_dir/tb" ]; then
+  tb_cmd=tb
+else
+  tb_cmd="$install_dir/tb"
 fi
-exec "$install_dir/tb" setup </dev/tty
+info "run '$tb_cmd setup' to set up this machine"
