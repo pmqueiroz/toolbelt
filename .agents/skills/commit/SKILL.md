@@ -32,8 +32,8 @@ All optional — derive from the diff when not given.
 * Imperative mood ("add", "migrate", "fix" — not "added"/"fixes").
 * Lower-case after the colon, no full stop at the end.
 * `scope` is the area touched: a command (`setup`, `pr`, `commit`,
-  `checkout`, `hot`, `env`, `secret`, `update`), a package (`pkgmgr`, `recipes`,
-  `dots`, `shellrc`, `auth`, `ui`, `run`, `bitwarden`, `vault`), `install` (bootstrap scripts), a
+  `checkout`, `hot`, `benchmark`, `env`, `secret`, `update`), a package (`pkgmgr`, `recipes`,
+  `dots`, `shellrc`, `auth`, `ui`, `run`, `bitwarden`, `vault`, `bench`), `install` (bootstrap scripts), a
   recipe name (`essentials`, `node`, `code`, …) or a dot (`gitconfig`,
   `vscode`, `tmux`). Omit it when the change spans several areas.
 
