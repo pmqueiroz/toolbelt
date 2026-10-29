@@ -109,3 +109,50 @@ func TestPlanWritesBlockThenHasNothingLeftToDo(t *testing.T) {
 		t.Errorf("second plan = %v, %v", again, err)
 	}
 }
+
+func TestRemoveDropsBothBlocksAndKeepsUserLines(t *testing.T) {
+	existing := "a\n# ---BEGIN DOTFILES SOURCE---\nold\n# ---END DOTFILES SOURCE---\nb\n\n# ---BEGIN TOOLBELT---\nalias x=y\n# ---END TOOLBELT---\n"
+
+	if got := Remove(existing); got != "a\nb\n" {
+		t.Errorf("Remove = %q", got)
+	}
+}
+
+func TestRemoveLeavesAFileWithoutBlocksUntouched(t *testing.T) {
+	existing := "export FOO=1\n"
+	if got := Remove(existing); got != existing {
+		t.Errorf("Remove = %q", got)
+	}
+}
+
+func TestRemovalPlanCoversEveryRcFileWithABlock(t *testing.T) {
+	home := t.TempDir()
+	bashrc := filepath.Join(home, ".bashrc")
+	zshrc := filepath.Join(home, ".zshrc")
+	if err := os.WriteFile(bashrc, []byte(Apply("export FOO=1\n", "alias a=b")), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(zshrc, []byte("export BAR=1\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	env := Env{GOOS: "linux", Home: home, Shell: "/bin/zsh", Profile: noProfile}
+
+	actions, err := RemovalPlan(env, now)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(actions) != 1 || !strings.Contains(actions[0].Description, "~"+string(filepath.Separator)+".bashrc") {
+		t.Fatalf("actions = %+v", actions)
+	}
+
+	if err := actions[0].Run(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	got, _ := os.ReadFile(bashrc)
+	if string(got) != "export FOO=1\n" {
+		t.Errorf("bashrc = %q", got)
+	}
+	if _, err := os.Stat(bashrc + ".20261028_235000.bak"); err != nil {
+		t.Errorf("backup missing: %v", err)
+	}
+}

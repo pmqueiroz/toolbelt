@@ -43,10 +43,8 @@ func DefaultEnv(goos, home string) Env {
 func Targets(env Env) []Target {
 	if env.GOOS == "windows" {
 		var targets []Target
-		for _, bin := range []string{"pwsh", "powershell"} {
-			if path, ok := env.Profile(bin); ok {
-				targets = append(targets, Target{Path: path, Block: "profile.ps1"})
-			}
+		for _, path := range profiles(env) {
+			targets = append(targets, Target{Path: path, Block: "profile.ps1"})
 		}
 		return targets
 	}
@@ -67,10 +65,7 @@ func Targets(env Env) []Target {
 }
 
 func Apply(existing, block string) string {
-	cleaned := removeBlock(existing, legacyBeginMarker, legacyEndMarker)
-	cleaned = removeBlock(cleaned, beginMarker, endMarker)
-	cleaned = strings.TrimRight(cleaned, "\n")
-
+	cleaned := strings.TrimRight(Remove(existing), "\n")
 	managed := beginMarker + "\n" + strings.TrimRight(block, "\n") + "\n" + endMarker + "\n"
 	if cleaned == "" {
 		return managed
@@ -115,6 +110,56 @@ func Plan(env Env, now time.Time) ([]plan.Action, error) {
 		})
 	}
 	return actions, nil
+}
+
+func Remove(existing string) string {
+	cleaned := removeBlock(existing, legacyBeginMarker, legacyEndMarker)
+	cleaned = removeBlock(cleaned, beginMarker, endMarker)
+	cleaned = strings.TrimRight(cleaned, "\n")
+	if cleaned == "" {
+		return ""
+	}
+	return cleaned + "\n"
+}
+
+func RemovalPlan(env Env, now time.Time) ([]plan.Action, error) {
+	var actions []plan.Action
+	for _, path := range rcFiles(env) {
+		existing, err := readIfExists(path)
+		if err != nil {
+			return nil, err
+		}
+		content := Remove(existing)
+		if content == existing {
+			continue
+		}
+
+		target := path
+		actions = append(actions, plan.Action{
+			Description: fmt.Sprintf("remove toolbelt block from %s (backup %s)", files.Pretty(path, env.Home), files.Pretty(files.BackupPath(path, now), env.Home)),
+			Run: func(context.Context) error {
+				return files.WriteWithBackup(target, []byte(content), now)
+			},
+		})
+	}
+	return actions, nil
+}
+
+func rcFiles(env Env) []string {
+	if env.GOOS == "windows" {
+		return profiles(env)
+	}
+	return []string{filepath.Join(env.Home, ".bashrc"), filepath.Join(env.Home, ".zshrc")}
+}
+
+func profiles(env Env) []string {
+	var paths []string
+	for _, bin := range []string{"pwsh", "powershell"} {
+		if path, ok := env.Profile(bin); ok {
+			paths = append(paths, path)
+		}
+	}
+	return paths
 }
 
 func removeBlock(content, begin, end string) string {
