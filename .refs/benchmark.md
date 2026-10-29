@@ -34,8 +34,23 @@ feature asked for); it costs little next to `crypto/rand`.
 
 One worker per `runtime.NumCPU()`, each filling batches of 1024 uuids from
 `crypto/rand` and setting the v4 version nibble and RFC 4122 variant bits.
-Counters are shared atomics; a goroutine in the CLI logs the running count
-every 15s.
+Counters are shared atomics.
+
+## Display
+
+With a TTY, a bubbletea program (`internal/cli/benchmark_view.go`) redraws on
+stderr every 200ms: spinner, a time bar, the live count and rate, and a
+bucket fill bar (`Bucket.Set` popcounts 128 MiB per refresh, a few ms). The
+run itself happens in a goroutine; Ctrl+C arrives as a key (raw mode) and
+cancels it, and the program quits when the run reports done, so the partial
+result is never lost. Without a TTY the same run logs a start line and the
+running count every 15s instead.
+
+The results print to stdout inside `ui.Panel`: run stats, the bucket bar,
+then one `ui.Bar` per estimate on a log10 scale relative to the longest one.
+Log scale because the values span ~30 orders of magnitude (seconds to fill
+RAM vs 10^23 years to find every uuid); a linear bar would show only the
+last one.
 
 ## Estimates
 
@@ -51,7 +66,16 @@ All from `rate = generated / elapsed`:
   wrapper). Storage is the space available to the user on the volume holding
   the home dir (`statfs` / `GetDiskFreeSpaceEx`).
 
-`FormatSeconds` prints durations under a year as Go durations and longer
-ones as `%.3g years`; a zero rate prints `never`.
+- **fill earth storage**: same formula against `EarthStorage`, 18 ZB. A
+  fixed estimate, not measured: IDC's Global StorageSphere put the world's
+  installed storage base at 6.8 ZB in 2020 with a 17.8% yearly growth
+  forecast; extrapolated to 2026 that is ~18 ZB. Bump the constant when a
+  newer figure is published.
 
-Results go to stdout (`cmd.OutOrStdout()`), progress to the logger.
+`FormatSeconds` prints durations under a year as Go durations, up to a
+millennium as `%.3g years`, and beyond that adds `DescribeYears` in
+parentheses: the count in millennia named with the short scale ("292
+quintillion millennia"), names up to decillion (larger values keep
+growing the number in front of "decillion"). A zero rate prints `never`.
+
+Results go to stdout (`cmd.OutOrStdout()`), progress to stderr.

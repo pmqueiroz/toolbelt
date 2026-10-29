@@ -17,7 +17,8 @@ Code is the truth. This file explains the *why* behind the shape it takes.
   `root.go` runs everything under a context cancelled by Ctrl+C.
 - `internal/ui/` — the only place terminal styling lives: `log` wrapper
   (kitchen timestamps, like the old `gum log`), lipgloss styles,
-  `Confirm`, `Spin` (falls back to a plain log line without a TTY).
+  `Confirm`, `Spin` (falls back to a plain log line without a TTY), `Bar`
+  (a `█░` bar for a 0–1 fraction, clamped) and `Panel` (rounded titled box).
 - `internal/run/` — `Runner` executes commands. `Run` sends output to the
   log file (or the terminal too with `--verbose`), `Output` captures stdout,
   `Attached` wires stdin/stdout for interactive commands (git pull, gh).
