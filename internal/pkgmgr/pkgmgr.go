@@ -44,6 +44,14 @@ func PrependPath(m Manager) {
 	os.Setenv("PATH", joinPath(dirs))
 }
 
+func RefreshPath() {
+	os.Setenv("PATH", withPersisted(filepath.SplitList(os.Getenv("PATH")), persistedPath()))
+}
+
+func withPersisted(current, persisted []string) string {
+	return joinPath(append(current, persisted...))
+}
+
 func joinPath(dirs []string) string {
 	var unique []string
 	for _, d := range dirs {

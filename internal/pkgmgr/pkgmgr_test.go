@@ -47,3 +47,16 @@ func TestPrependPathPutsManagerDirsFirstWithoutDuplicates(t *testing.T) {
 		t.Errorf("PATH = %q, want %q", got, want)
 	}
 }
+
+func TestWithPersistedAppendsNewDirsAfterTheCurrentOnes(t *testing.T) {
+	sep := string(os.PathListSeparator)
+	current := []string{filepath.FromSlash("/links"), filepath.FromSlash("/usr/bin")}
+	persisted := []string{filepath.FromSlash("/usr/bin"), filepath.FromSlash("/packages/mise/bin"), ""}
+
+	got := withPersisted(current, persisted)
+
+	want := strings.Join([]string{filepath.FromSlash("/links"), filepath.FromSlash("/usr/bin"), filepath.FromSlash("/packages/mise/bin")}, sep)
+	if got != want {
+		t.Errorf("withPersisted = %q, want %q", got, want)
+	}
+}

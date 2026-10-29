@@ -39,7 +39,11 @@ func (w *winget) Installed(ctx context.Context, p Package) bool {
 
 func (w *winget) Install(ctx context.Context, p Package) error {
 	args := append([]string{"install", "--id", p.Winget, "--silent", "--accept-package-agreements"}, wingetCommon...)
-	return w.r.Run(ctx, w.bin, args...)
+	if err := w.r.Run(ctx, w.bin, args...); err != nil {
+		return err
+	}
+	RefreshPath()
+	return nil
 }
 
 func (w *winget) BinDirs() []string {
