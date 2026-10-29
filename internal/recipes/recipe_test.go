@@ -28,7 +28,7 @@ func (f *fakeManager) ID(p pkgmgr.Package) string {
 	switch {
 	case f.goos == "windows":
 		return p.Winget
-	case p.Cask && f.goos != "darwin":
+	case p.Cask && f.goos != "darwin" && !(p.CaskOnLinux && f.goos == "linux"):
 		return ""
 	}
 	return p.Brew
@@ -68,9 +68,9 @@ func names(rs []Recipe) []string {
 
 func TestForOS(t *testing.T) {
 	cases := map[string][]string{
-		"linux":   {"essentials", "node", "pnpm", "code"},
-		"darwin":  {"essentials", "node", "pnpm", "code", "apps", "android"},
-		"windows": {"essentials", "node", "pnpm", "code", "apps", "android"},
+		"linux":   {"essentials", "node", "pnpm", "code", "claude"},
+		"darwin":  {"essentials", "node", "pnpm", "code", "claude", "apps", "android"},
+		"windows": {"essentials", "node", "pnpm", "code", "claude", "apps", "android"},
 	}
 	for goos, want := range cases {
 		if got := names(ForOS(goos)); !slices.Equal(got, want) {

@@ -29,6 +29,7 @@ func All() []Recipe {
 		node,
 		pnpm,
 		code,
+		claude,
 		apps,
 		android,
 	}

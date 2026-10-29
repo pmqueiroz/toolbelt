@@ -22,7 +22,7 @@ func TestValidEmail(t *testing.T) {
 
 func TestDefaultRecipes(t *testing.T) {
 	got := defaultRecipes(recipes.ForOS("darwin"))
-	if !slices.Equal(got, []string{"essentials", "node", "pnpm", "code"}) {
+	if !slices.Equal(got, []string{"essentials", "node", "pnpm", "code", "claude"}) {
 		t.Errorf("defaultRecipes = %v", got)
 	}
 }
