@@ -67,10 +67,11 @@ Code is the truth. This file explains the *why* behind the shape it takes.
 
 1. **Form** (`setup.Ask`): one huh form, nothing runs before it is
    submitted. Identity is prefilled from the global git config. Groups for
-   recipes, npm token and gpg passphrase are hidden unless their step is
-   selected. There are no skip flags; unselecting a step is the skip.
+   recipes, language tool chains, npm token and gpg passphrase are hidden
+   unless their step is selected. There are no skip flags; unselecting a step is the skip.
 2. **Plan** (`setup.BuildPlan`): `Answers` + `Context` → ordered `[]Phase`:
-   shell sources → dependencies → dot files → ssh key → npm token → gpg key.
+   shell sources → dependencies → language tool chains → dot files → ssh
+   key → npm token → gpg key.
    Steps whose work is already done contribute no actions (identical dot,
    existing ssh key, rc block already current), so a rerun shows only real
    changes. Building the plan only reads; it never writes.
@@ -137,7 +138,7 @@ add it to `All()`, give every package both a brew name and a winget ID
 backoff (`run.Retry`): the marketplace answers 503 now and then, and one
 flaky extension used to fail the whole action.
 
-Current recipes: `essentials`, `node`, `pnpm`, `code`, `claude` (default)
+Current recipes: `essentials`, `code`, `claude` (default)
 and `apps`, `android` (macOS/Windows only, because brew casks don't exist on
 linux).
 
@@ -146,7 +147,25 @@ and installs fine with Linuxbrew. `claude` (Claude Code, cask `claude-code`,
 winget `Anthropic.ClaudeCode`) is one, so it installs on all three OSes.
 Its config is the `claude-settings.json` dot, not part of the recipe, so it
 syncs like every other dot.
-`node` and `pnpm` both start with "install mise"; `plan.Dedupe` keeps one.
+
+### Language tool chains
+
+Languages are recipes too, but listed in `recipes.Languages()` instead of
+`All()`, so the form shows them in their own multi-select under the
+`languages` step and the plan puts them in their own "language tool chains"
+phase. `ForOS` / `LanguagesForOS` filter each list the same way.
+
+| language | mise tools | default |
+|---|---|---|
+| `node` | `node@lts`, `pnpm@latest` | yes |
+| `rust` | `rust@latest` | no |
+| `go` | `go@latest` | no |
+| `python` | `python@latest` | no |
+
+Every language is `miseUse(env, tools...)`: install mise, then one
+`mise use -g <tool>` action per tool. Each starts with the same "install
+mise" action; `plan.Dedupe` keeps one. pnpm is part of the node tool chain,
+not a recipe of its own: it is only useful with node.
 
 Why mise instead of asdf: asdf has no Windows support; mise runs everywhere
 with the same commands. Why fastfetch: neofetch was removed from Homebrew.
@@ -185,7 +204,7 @@ default), enables the `context7` plugin from `claude-plugins-official`
 (Anthropic's marketplace, known to Claude Code out of the box, so no
 `extraKnownMarketplaces` entry), and points `statusLine` at `npx -y ccstatusline@latest`
 ([ccstatusline](https://github.com/sirmalloc/ccstatusline)). npx comes from
-the `node` recipe. Claude Code
+the `node` language tool chain. Claude Code
 rewrites `settings.json` itself (`/model`, `/config`); if it replaces the link
 with a regular file, sync treats that file as local and merges it.
 
