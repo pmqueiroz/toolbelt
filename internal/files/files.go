@@ -56,6 +56,27 @@ func WriteWithBackup(path string, content []byte, now time.Time) error {
 	return os.WriteFile(path, content, 0o644)
 }
 
+func WriteAtomic(path string, content []byte, perm fs.FileMode) error {
+	dir := filepath.Dir(path)
+	tmp, err := os.CreateTemp(dir, filepath.Base(path)+".*.tmp")
+	if err != nil {
+		return err
+	}
+	defer os.Remove(tmp.Name())
+	if err := tmp.Chmod(perm); err != nil {
+		tmp.Close()
+		return err
+	}
+	if _, err := tmp.Write(content); err != nil {
+		tmp.Close()
+		return err
+	}
+	if err := tmp.Close(); err != nil {
+		return err
+	}
+	return os.Rename(tmp.Name(), path)
+}
+
 func Pretty(path, home string) string {
 	if home != "" && strings.HasPrefix(path, home) {
 		return "~" + strings.TrimPrefix(path, home)
