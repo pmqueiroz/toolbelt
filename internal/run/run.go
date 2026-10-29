@@ -71,6 +71,22 @@ func (r *Runner) command(ctx context.Context, name string, args ...string) *exec
 	return exec.CommandContext(ctx, name, args...)
 }
 
+func Retry(ctx context.Context, attempts int, delay time.Duration, fn func() error) error {
+	var err error
+	for attempt := 1; attempt <= attempts; attempt++ {
+		if err = fn(); err == nil || attempt == attempts {
+			return err
+		}
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(delay):
+		}
+		delay *= 2
+	}
+	return err
+}
+
 func Exists(name string) bool {
 	_, err := exec.LookPath(name)
 	return err == nil

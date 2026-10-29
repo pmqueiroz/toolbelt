@@ -7,11 +7,16 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/pmqueiroz/toolbelt/internal/pkgmgr"
 	"github.com/pmqueiroz/toolbelt/internal/plan"
 	"github.com/pmqueiroz/toolbelt/internal/run"
 )
+
+const extensionAttempts = 3
+
+var extensionRetryDelay = 2 * time.Second
 
 var ErrCodeMissing = errors.New("make sure vscode is installed and the code command is added to PATH")
 
@@ -62,7 +67,10 @@ func installExtensions(ctx context.Context, env Env) error {
 
 	var failed []string
 	for _, ext := range missingExtensions(strings.Split(listed, "\n"), codeExtensions) {
-		if err := env.Run.Run(ctx, "code", "--install-extension", ext); err != nil {
+		err := run.Retry(ctx, extensionAttempts, extensionRetryDelay, func() error {
+			return env.Run.Run(ctx, "code", "--install-extension", ext)
+		})
+		if err != nil {
 			failed = append(failed, ext)
 		}
 	}
