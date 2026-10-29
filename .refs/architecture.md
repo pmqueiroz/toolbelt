@@ -13,7 +13,7 @@ Code is the truth. This file explains the *why* behind the shape it takes.
 - `cmd/tb/main.go` — entry point. `version`/`commit`/`date` are stamped by
   GoReleaser ldflags; a plain `go build` reports `dev`.
 - `internal/cli/` — one cobra command per file (`setup`, `pr`, `commit`,
-  `checkout`, `hot`, `benchmark`, `env`, `secret`, `update`, `uninstall`, `version`), wired in `root.go`.
+  `checkout`, `hot`, `benchmark`, `env`, `secret`, `dots`, `update`, `uninstall`, `version`), wired in `root.go`.
   `root.go` runs everything under a context cancelled by Ctrl+C.
 - `internal/ui/` — the only place terminal styling lives: `log` wrapper
   (kitchen timestamps, like the old `gum log`), lipgloss styles,
@@ -26,11 +26,14 @@ Code is the truth. This file explains the *why* behind the shape it takes.
 - `internal/pkgmgr/` — `Manager` interface with `brew` (linux, darwin) and
   `winget` (windows).
 - `internal/recipes/` — installable units (see below).
-- `internal/dots/` — embedded dot files (`files/`) and their per-OS targets.
+- `internal/dots/` — embedded dot files (`files/`), their per-OS targets and
+  the link + merge sync (`sync.go`).
+- `internal/merge/` — pure line-based three-way merge (`Three`) and conflict
+  marker detection (`HasMarkers`), used by dot sync.
 - `internal/shellrc/` — the managed block in shell rc files (`blocks/`).
 - `internal/auth/` — ssh key, npm token, gpg signing key.
-- `internal/files/` — compare / write-with-backup / `~` pretty paths, shared
-  by dots and shellrc.
+- `internal/files/` — compare / write-with-backup / atomic write / `~` pretty
+  paths, shared by dots, shellrc and vault.
 - `internal/secret/` — masking used by `tb env`, `tb secret list` and the npm plan line.
   `Mask` keeps the first/last 4 chars and rejects values under 8; `Redact`
   stars short values fully; `SplitEnv` splits a `NAME=value` entry (names
@@ -108,7 +111,9 @@ changing anything, like `tb setup`. Without a TTY it refuses unless `--yes`.
    `tb` around to retry.
 
 What `tb setup` installed (packages, dot files, ssh/gpg keys, `~/.npmrc`,
-`~/.gitconfig.local`) is left alone: those are the machine's config now, not
+`~/.gitconfig.local`) is left alone, including the dot store under
+`<UserConfigDir>/toolbelt/dots` the targets link to (removing it would
+leave dangling links): those are the machine's config now, not
 tb's, and other tools depend on them.
 
 ## The extension point: recipes
@@ -164,12 +169,77 @@ A missing manager only fails the plan if the dependencies step is selected.
 Embedded with `//go:embed all:files` (`all:` because they are dotfiles).
 `{{username}}`, `{{email}}`, `{{passphrase}}` are replaced by `dots.Render`.
 Targets use `os.UserConfigDir()`, which gives the right VS Code folder per OS.
-`.tmux.conf` is skipped on Windows. Changed files are backed up to
-`<file>.<timestamp>.bak`; identical files are left alone.
+`.tmux.conf` is skipped on Windows.
+
+### Store and links
+
+Dots are not copied to their targets. The rendered file lives in the store,
+`<UserConfigDir>/toolbelt/dots/<file>` (`Paths.Store`), and the target
+(`~/.gitconfig`, VS Code `settings.json`, …) is a symlink to it. Editing the
+target edits the store copy, which is what sync merges against.
+
+Store layout:
+
+- `<file>` — the live copy the target links to (local edits land here).
+- `.base/<file>` — the exact upstream render tb last wrote: the merge base.
+- `vars.json` — `username` / `email` used to render, so `tb dots sync` can
+  re-render without the setup form. The gpg passphrase is never saved (no
+  dot uses it).
+
+The link is created as a temp symlink renamed over the target, so the target
+is never missing mid-write. If `os.Symlink` fails (Windows without developer
+mode) the target gets a plain copy instead; sync then treats that copy as the
+local version, same as a link an editor replaced with a regular file.
+
+### Sync (`dots.Plan`, used by `tb setup` and `tb dots sync`)
+
+Per dot, with *upstream* = this binary's render, *base* = `.base/<file>`,
+*local* = the live copy if the target links to it (or is missing), else the
+target file's own content:
+
+| situation | result |
+|---|---|
+| target exists, base == upstream | nothing (local edits kept, no action) |
+| no local file | write upstream, link |
+| local == upstream | write upstream, link if needed |
+| no base (first adoption of a foreign file) | backup target, write upstream, link |
+| base present | `merge.Three(base, local, upstream)`, write result, link |
+| local still has `<<<<<<< local` / `>>>>>>> toolbelt` markers | refuse; action fails asking to resolve |
+
+Writes are atomic (`files.WriteAtomic`) and ordered backup → live → base →
+link. A crash between live and base is safe: the next merge sees the same
+change on both sides, which the merge accepts without conflict.
+
+Backups (`<target>.<timestamp>.bak`, holding *local*) are made when local
+content would otherwise be lost: first adoption, any conflict, and a merge
+into a target that was a regular file. A clean merge through the link needs
+none: the result contains every local line change.
+
+Conflicts follow git: the live file gets
+`<<<<<<< local` / `=======` / `>>>>>>> toolbelt` hunks, base advances to
+upstream, and the action returns an error (exit 1) naming the file. Until
+the markers are gone, sync refuses to touch that file, so an unresolved file
+is never merged again. Because base already moved, resolving by keeping
+either side (or both) merges cleanly next time.
+
+`merge.Three` is a diff3 over lines: LCS-match base to each side, emit
+stable runs, and per changed hunk take the side that changed (identical
+changes on both sides are not a conflict). Pure Go, no `git merge-file`, so
+it works before git is installed and on Windows.
+
+### Updates
+
+`tb update` syncs dots after replacing the binary: it runs the *new*
+binary's `tb dots sync` (`run.Runner.Attached`), because the running process
+still has the old embedded files. When already up to date it syncs
+in-process, which also repairs missing links. A sync failure makes `tb
+update` exit 1 but the binary is already updated. Without `vars.json` (dots
+step never run with this version) sync is a no-op that says to run
+`tb setup`.
 
 `.gitconfig` includes `~/.gitconfig.local`. Machine-specific git settings
-(`user.signingkey`, Windows `gpg.program`) go there, so rerunning the dots
-step never wipes the signing key.
+(`user.signingkey`, Windows `gpg.program`) go there, so syncing dots never
+wipes the signing key.
 
 ## Shell sources
 
@@ -235,5 +305,9 @@ has none: a bare `secret` is too generic a name to claim.
 - `tb commit`/`tb pr` interactive paths have no automated test.
 - `apps`/`android` have no linux equivalent (no flatpak support).
 - On linux the `code` recipe needs VS Code already installed.
+- Dots dropped from `dots.All` in a later version keep their link and store
+  copy; sync only visits current dots.
+- Machines set up before dot linking keep copied files until `tb setup` runs
+  the dots step again (no `vars.json`, so `tb dots sync` can't render).
 - `tb uninstall` on Windows leaves the install dir entry that `install.ps1`
   added to the user `Path`, and the empty install dir.
