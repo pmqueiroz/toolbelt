@@ -27,6 +27,10 @@ type Keyring interface {
 	Set(service, user, secret string) error
 }
 
+type KeyringDeleter interface {
+	Delete(service, user string) error
+}
+
 type Paths struct {
 	Store   string
 	KeyFile string
@@ -53,6 +57,39 @@ func (OSKeyring) Get(service, user string) (string, error) {
 
 func (OSKeyring) Set(service, user, secret string) error {
 	return keyring.Set(service, user, secret)
+}
+
+func (OSKeyring) Delete(service, user string) error {
+	err := keyring.Delete(service, user)
+	if errors.Is(err, keyring.ErrNotFound) {
+		return ErrKeyringItemMissing
+	}
+	return err
+}
+
+func Purge(ring KeyringDeleter, paths Paths) error {
+	_, keyFileErr := os.Stat(paths.KeyFile)
+	keyLivedInFile := keyFileErr == nil
+
+	for _, path := range []string{paths.Store, paths.KeyFile} {
+		if err := os.Remove(path); err != nil && !errors.Is(err, fs.ErrNotExist) {
+			return err
+		}
+	}
+	removeIfEmpty(filepath.Dir(paths.Store))
+
+	err := ring.Delete(keyringService, keyringUser)
+	if err == nil || errors.Is(err, ErrKeyringItemMissing) || keyLivedInFile {
+		return nil
+	}
+	return err
+}
+
+func removeIfEmpty(dir string) {
+	entries, err := os.ReadDir(dir)
+	if err == nil && len(entries) == 0 {
+		os.Remove(dir)
+	}
 }
 
 type DataKey struct {

@@ -9,10 +9,22 @@ import (
 )
 
 type fakeKeyring struct {
-	items   map[string]string
-	getErr  error
-	setErr  error
-	setCall int
+	items     map[string]string
+	getErr    error
+	setErr    error
+	deleteErr error
+	setCall   int
+}
+
+func (f *fakeKeyring) Delete(service, user string) error {
+	if f.deleteErr != nil {
+		return f.deleteErr
+	}
+	if _, ok := f.items[service+"/"+user]; !ok {
+		return ErrKeyringItemMissing
+	}
+	delete(f.items, service+"/"+user)
+	return nil
 }
 
 func (f *fakeKeyring) Get(service, user string) (string, error) {
@@ -95,5 +107,67 @@ func TestLoadDataKeyRejectsAGarbledKey(t *testing.T) {
 	ring := &fakeKeyring{items: map[string]string{keyringService + "/" + keyringUser: "short"}}
 	if _, err := LoadDataKey(ring, testPaths(t)); err != ErrInvalidKey {
 		t.Fatalf("LoadDataKey = %v; want ErrInvalidKey", err)
+	}
+}
+
+func TestPurgeRemovesStoreKeyringKeyAndEmptyDir(t *testing.T) {
+	paths := Paths{Store: filepath.Join(t.TempDir(), "toolbelt", "secrets.enc")}
+	paths.KeyFile = filepath.Join(filepath.Dir(paths.Store), "secret.key")
+	ring := &fakeKeyring{}
+	if _, err := LoadDataKey(ring, paths); err != nil {
+		t.Fatal(err)
+	}
+	if err := writeAtomic(paths.Store, []byte("sealed")); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := Purge(ring, paths); err != nil {
+		t.Fatalf("Purge: %v", err)
+	}
+
+	if len(ring.items) != 0 {
+		t.Errorf("keyring still holds %v", ring.items)
+	}
+	if _, err := os.Stat(filepath.Dir(paths.Store)); !errors.Is(err, os.ErrNotExist) {
+		t.Errorf("store dir not removed: %v", err)
+	}
+}
+
+func TestPurgeKeepsADirWithOtherFiles(t *testing.T) {
+	paths := testPaths(t)
+	other := filepath.Join(filepath.Dir(paths.Store), "other")
+	if err := os.WriteFile(other, nil, 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := Purge(&fakeKeyring{}, paths); err != nil {
+		t.Fatalf("Purge: %v", err)
+	}
+
+	if _, err := os.Stat(other); err != nil {
+		t.Errorf("unrelated file removed: %v", err)
+	}
+}
+
+func TestPurgeIgnoresAnUnreachableKeyringWhenTheKeyLivedInAFile(t *testing.T) {
+	paths := testPaths(t)
+	ring := &fakeKeyring{getErr: errors.New("no dbus"), deleteErr: errors.New("no dbus")}
+	if _, err := LoadDataKey(ring, paths); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := Purge(ring, paths); err != nil {
+		t.Fatalf("Purge: %v", err)
+	}
+	if _, err := os.Stat(paths.KeyFile); !errors.Is(err, os.ErrNotExist) {
+		t.Errorf("key file not removed: %v", err)
+	}
+}
+
+func TestPurgeReportsAnUnreachableKeyringWithoutAKeyFile(t *testing.T) {
+	ring := &fakeKeyring{deleteErr: errors.New("locked")}
+
+	if err := Purge(ring, testPaths(t)); err == nil {
+		t.Error("Purge succeeded with a keyring it could not reach")
 	}
 }
