@@ -61,7 +61,7 @@ func runSetup(ctx context.Context, verbose bool) error {
 		pkgmgr.PrependPath(c.Pkg)
 	}
 
-	answers, err := setup.Ask(gitIdentity(ctx, r), recipes.ForOS(c.GOOS))
+	answers, err := setup.Ask(gitIdentity(ctx, r), recipes.ForOS(c.GOOS), recipes.LanguagesForOS(c.GOOS))
 	if errors.Is(err, setup.ErrAborted) {
 		ui.Warn("setup aborted. nothing changed")
 		return nil

@@ -26,8 +26,6 @@ type Recipe struct {
 func All() []Recipe {
 	return []Recipe{
 		essentials,
-		node,
-		pnpm,
 		code,
 		claude,
 		apps,
@@ -35,9 +33,26 @@ func All() []Recipe {
 	}
 }
 
+func Languages() []Recipe {
+	return []Recipe{
+		node,
+		rust,
+		golang,
+		python,
+	}
+}
+
 func ForOS(goos string) []Recipe {
+	return supportedOn(goos, All())
+}
+
+func LanguagesForOS(goos string) []Recipe {
+	return supportedOn(goos, Languages())
+}
+
+func supportedOn(goos string, rs []Recipe) []Recipe {
 	var supported []Recipe
-	for _, r := range All() {
+	for _, r := range rs {
 		if r.Supports(goos) {
 			supported = append(supported, r)
 		}

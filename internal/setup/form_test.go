@@ -22,7 +22,14 @@ func TestValidEmail(t *testing.T) {
 
 func TestDefaultRecipes(t *testing.T) {
 	got := defaultRecipes(recipes.ForOS("darwin"))
-	if !slices.Equal(got, []string{"essentials", "node", "pnpm", "code", "claude"}) {
+	if !slices.Equal(got, []string{"essentials", "code", "claude"}) {
 		t.Errorf("defaultRecipes = %v", got)
+	}
+}
+
+func TestDefaultLanguagesIsNode(t *testing.T) {
+	got := defaultRecipes(recipes.LanguagesForOS("linux"))
+	if !slices.Equal(got, []string{"node"}) {
+		t.Errorf("defaultRecipes(languages) = %v", got)
 	}
 }

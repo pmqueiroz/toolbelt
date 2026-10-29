@@ -68,13 +68,21 @@ func names(rs []Recipe) []string {
 
 func TestForOS(t *testing.T) {
 	cases := map[string][]string{
-		"linux":   {"essentials", "node", "pnpm", "code", "claude"},
-		"darwin":  {"essentials", "node", "pnpm", "code", "claude", "apps", "android"},
-		"windows": {"essentials", "node", "pnpm", "code", "claude", "apps", "android"},
+		"linux":   {"essentials", "code", "claude"},
+		"darwin":  {"essentials", "code", "claude", "apps", "android"},
+		"windows": {"essentials", "code", "claude", "apps", "android"},
 	}
 	for goos, want := range cases {
 		if got := names(ForOS(goos)); !slices.Equal(got, want) {
 			t.Errorf("ForOS(%s) = %v, want %v", goos, got, want)
+		}
+	}
+}
+
+func TestLanguagesForOSOffersEveryLanguageEverywhere(t *testing.T) {
+	for _, goos := range []string{"linux", "darwin", "windows"} {
+		if got := names(LanguagesForOS(goos)); !slices.Equal(got, []string{"node", "rust", "go", "python"}) {
+			t.Errorf("LanguagesForOS(%s) = %v", goos, got)
 		}
 	}
 }
@@ -111,7 +119,7 @@ func TestInstallPackagesDescribesManagerAndID(t *testing.T) {
 func TestEveryPackageHasAnIDOnEverySupportedOS(t *testing.T) {
 	for _, goos := range []string{"linux", "darwin", "windows"} {
 		env, _ := fakeEnv(goos)
-		for _, r := range ForOS(goos) {
+		for _, r := range append(ForOS(goos), LanguagesForOS(goos)...) {
 			for _, d := range descriptions(r.Plan(env)) {
 				if strings.HasSuffix(d, " )") || strings.Contains(d, "  ") {
 					t.Errorf("%s/%s: action with empty id: %q", goos, r.Name, d)

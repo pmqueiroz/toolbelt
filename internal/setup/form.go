@@ -11,20 +11,19 @@ import (
 
 var ErrAborted = huh.ErrUserAborted
 
-func Ask(defaults Answers, available []recipes.Recipe) (Answers, error) {
+func Ask(defaults Answers, available, languages []recipes.Recipe) (Answers, error) {
 	a := defaults
 	a.Steps = allSteps()
 	a.Recipes = defaultRecipes(available)
+	a.Languages = defaultRecipes(languages)
 
 	stepOptions := make([]huh.Option[Step], 0, len(Steps))
 	for _, s := range Steps {
 		stepOptions = append(stepOptions, huh.NewOption(s.Label, s.Step).Selected(true))
 	}
 
-	recipeOptions := make([]huh.Option[string], 0, len(available))
-	for _, r := range available {
-		recipeOptions = append(recipeOptions, huh.NewOption(r.Name, r.Name).Selected(r.Default))
-	}
+	recipeChoices := recipeOptions(available)
+	languageChoices := recipeOptions(languages)
 
 	form := huh.NewForm(
 		huh.NewGroup(
@@ -46,9 +45,15 @@ func Ask(defaults Answers, available []recipes.Recipe) (Answers, error) {
 		huh.NewGroup(
 			huh.NewMultiSelect[string]().
 				Title("recipes to install").
-				Options(recipeOptions...).
+				Options(recipeChoices...).
 				Value(&a.Recipes),
 		).WithHideFunc(func() bool { return !a.Has(StepDependencies) }),
+		huh.NewGroup(
+			huh.NewMultiSelect[string]().
+				Title("language tool chains to install").
+				Options(languageChoices...).
+				Value(&a.Languages),
+		).WithHideFunc(func() bool { return !a.Has(StepLanguages) }),
 		huh.NewGroup(
 			huh.NewNote().Title("github packages token").Description("generate a classic token with read:packages at\n"+auth.TokenSettingsURL),
 			huh.NewInput().Title("token").Placeholder("ghp_...").EchoMode(huh.EchoModePassword).Value(&a.NPMToken).Validate(required("token")),
@@ -72,6 +77,14 @@ func allSteps() []Step {
 		steps = append(steps, s.Step)
 	}
 	return steps
+}
+
+func recipeOptions(rs []recipes.Recipe) []huh.Option[string] {
+	options := make([]huh.Option[string], 0, len(rs))
+	for _, r := range rs {
+		options = append(options, huh.NewOption(r.Name, r.Name).Selected(r.Default))
+	}
+	return options
 }
 
 func defaultRecipes(available []recipes.Recipe) []string {

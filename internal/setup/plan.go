@@ -51,14 +51,14 @@ func BuildPlan(a Answers, c Context) ([]Phase, error) {
 		if c.PkgErr != nil {
 			return nil, c.PkgErr
 		}
-		env := recipes.Env{GOOS: c.GOOS, Pkg: c.Pkg, Run: c.Run}
-		var actions []plan.Action
-		for _, r := range recipes.ForOS(c.GOOS) {
-			if slices.Contains(a.Recipes, r.Name) {
-				actions = append(actions, r.Plan(env)...)
-			}
+		add("dependencies", recipeActions(c, recipes.ForOS(c.GOOS), a.Recipes))
+	}
+
+	if a.Has(StepLanguages) && len(a.Languages) > 0 {
+		if c.PkgErr != nil {
+			return nil, c.PkgErr
 		}
-		add("dependencies", plan.Dedupe(actions))
+		add("language tool chains", recipeActions(c, recipes.LanguagesForOS(c.GOOS), a.Languages))
 	}
 
 	if a.Has(StepDots) {
@@ -80,6 +80,17 @@ func BuildPlan(a Answers, c Context) ([]Phase, error) {
 	}
 
 	return phases, nil
+}
+
+func recipeActions(c Context, available []recipes.Recipe, chosen []string) []plan.Action {
+	env := recipes.Env{GOOS: c.GOOS, Pkg: c.Pkg, Run: c.Run}
+	var actions []plan.Action
+	for _, r := range available {
+		if slices.Contains(chosen, r.Name) {
+			actions = append(actions, r.Plan(env)...)
+		}
+	}
+	return plan.Dedupe(actions)
 }
 
 func Count(phases []Phase) int {

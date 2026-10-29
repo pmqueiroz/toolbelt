@@ -11,6 +11,7 @@ type Step string
 const (
 	StepSources      Step = "sources"
 	StepDependencies Step = "dependencies"
+	StepLanguages    Step = "languages"
 	StepDots         Step = "dots"
 	StepSSH          Step = "ssh"
 	StepNPM          Step = "npm"
@@ -23,6 +24,7 @@ var Steps = []struct {
 }{
 	{StepSources, "shell sources (bash, zsh, powershell profile)"},
 	{StepDependencies, "dependencies (recipes)"},
+	{StepLanguages, "language tool chains (node, rust, go, python)"},
 	{StepDots, "dot files (git, tmux, vscode)"},
 	{StepSSH, "github ssh key"},
 	{StepNPM, "github packages npm token"},
@@ -34,6 +36,7 @@ type Answers struct {
 	Email         string
 	Steps         []Step
 	Recipes       []string
+	Languages     []string
 	NPMToken      string
 	GPGPassphrase string
 }

@@ -42,7 +42,8 @@ func everything() Answers {
 		Username:      "peam",
 		Email:         "peam@example.com",
 		Steps:         allSteps(),
-		Recipes:       []string{"essentials", "node", "pnpm"},
+		Recipes:       []string{"essentials", "code"},
+		Languages:     []string{"node", "go"},
 		NPMToken:      "ghp_abcdefghijklmnop",
 		GPGPassphrase: "s3cret",
 	}
@@ -63,7 +64,7 @@ func TestBuildPlanOrdersPhasesLikeTheOldInstaller(t *testing.T) {
 	}
 
 	got := strings.Join(titles(phases), ",")
-	if got != "shell sources,dependencies,dot files,ssh key,npm token,gpg key" {
+	if got != "shell sources,dependencies,language tool chains,dot files,ssh key,npm token,gpg key" {
 		t.Errorf("phases = %s", got)
 	}
 }
@@ -81,17 +82,31 @@ func TestBuildPlanOnlyIncludesChosenSteps(t *testing.T) {
 	}
 }
 
-func TestBuildPlanDedupesSharedRecipeActions(t *testing.T) {
+func TestBuildPlanDedupesSharedLanguageActions(t *testing.T) {
 	a := everything()
-	a.Steps = []Step{StepDependencies}
-	a.Recipes = []string{"node", "pnpm"}
+	a.Steps = []Step{StepLanguages}
+	a.Languages = []string{"node", "rust", "python"}
 
 	phases, err := BuildPlan(a, testContext(t))
 	if err != nil {
 		t.Fatal(err)
 	}
-	if n := Count(phases); n != 3 {
-		t.Errorf("dependencies actions = %d, want 3 (mise once, node, pnpm)", n)
+	if n := Count(phases); n != 5 {
+		t.Errorf("language actions = %d, want 5 (mise once, node, pnpm, rust, python)", n)
+	}
+}
+
+func TestBuildPlanSkipsLanguagesWhenNoneChosen(t *testing.T) {
+	a := everything()
+	a.Steps = []Step{StepLanguages}
+	a.Languages = nil
+
+	phases, err := BuildPlan(a, testContext(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(phases) != 0 {
+		t.Errorf("phases = %v, want none", titles(phases))
 	}
 }
 

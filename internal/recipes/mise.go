@@ -13,23 +13,40 @@ var node = Recipe{
 	Name:    "node",
 	Default: true,
 	Plan: func(env Env) []plan.Action {
-		return miseUse(env, "node@lts")
+		return miseUse(env, "node@lts", "pnpm@latest")
 	},
 }
 
-var pnpm = Recipe{
-	Name:    "pnpm",
-	Default: true,
+var rust = Recipe{
+	Name: "rust",
 	Plan: func(env Env) []plan.Action {
-		return miseUse(env, "pnpm@latest")
+		return miseUse(env, "rust@latest")
 	},
 }
 
-func miseUse(env Env, tool string) []plan.Action {
-	return append(installPackages(env, misePackage), plan.Action{
-		Description: "mise use -g " + tool,
-		Run: func(ctx context.Context) error {
-			return env.Run.Run(ctx, "mise", "use", "--global", "--yes", tool)
-		},
-	})
+var golang = Recipe{
+	Name: "go",
+	Plan: func(env Env) []plan.Action {
+		return miseUse(env, "go@latest")
+	},
+}
+
+var python = Recipe{
+	Name: "python",
+	Plan: func(env Env) []plan.Action {
+		return miseUse(env, "python@latest")
+	},
+}
+
+func miseUse(env Env, tools ...string) []plan.Action {
+	actions := installPackages(env, misePackage)
+	for _, tool := range tools {
+		actions = append(actions, plan.Action{
+			Description: "mise use -g " + tool,
+			Run: func(ctx context.Context) error {
+				return env.Run.Run(ctx, "mise", "use", "--global", "--yes", tool)
+			},
+		})
+	}
+	return actions
 }
