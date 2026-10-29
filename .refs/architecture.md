@@ -13,7 +13,7 @@ Code is the truth. This file explains the *why* behind the shape it takes.
 - `cmd/tb/main.go` — entry point. `version`/`commit`/`date` are stamped by
   GoReleaser ldflags; a plain `go build` reports `dev`.
 - `internal/cli/` — one cobra command per file (`setup`, `pr`, `commit`,
-  `checkout`, `hot`, `env`, `secret`, `update`, `version`), wired in `root.go`.
+  `checkout`, `hot`, `benchmark`, `env`, `secret`, `update`, `version`), wired in `root.go`.
   `root.go` runs everything under a context cancelled by Ctrl+C.
 - `internal/ui/` — the only place terminal styling lives: `log` wrapper
   (kitchen timestamps, like the old `gum log`), lipgloss styles,
@@ -40,6 +40,9 @@ Code is the truth. This file explains the *why* behind the shape it takes.
   secret endpoints (see [secret.md](./secret.md)).
 - `internal/vault/` — the `tb secret` local store: AES-GCM file, data key in
   the OS keyring (file fallback), pure `Merge` of local and remote entries.
+- `internal/bench/` — `tb benchmark`: uuid workers, the base64-indexed bit
+  bucket, estimates and per-OS memory/disk size (see
+  [benchmark.md](./benchmark.md)).
 - `internal/gitx/` — git/gh queries and the pure rules behind `tb checkout`.
 - `internal/setup/` — the `tb setup` flow: form, plan, execute, summary.
 - `scripts/` — `install.sh` / `install.ps1` bootstrap one-liners, served by
@@ -164,6 +167,13 @@ removed first. A failed checkout stops; a failed pull only warns.
 
 `tb hot` polls size+mtime of each file every 500ms and runs the command via
 `sh -c` or `powershell -Command`.
+
+## Benchmark
+
+`tb benchmark` generates uuids for 1m, 5m or a custom time and estimates how
+long finding all of them, or filling RAM and disk with them, would take.
+Details in [benchmark.md](./benchmark.md). No shell alias: `benchmark` is
+not a daily command.
 
 ## Secrets
 

@@ -13,6 +13,8 @@ explain the *why* and the gotchas.
 - [secret.md](./.refs/secret.md) — `tb secret`: Bitwarden Secrets Manager
   protocol port (pure Go, no cgo), encrypted local mirror, keyring key,
   merge rules.
+- [benchmark.md](./.refs/benchmark.md) — `tb benchmark`: uuid generation,
+  base64-prefix bit bucket, find-all / fill-memory / fill-disk estimates.
 - [ci-cd.md](./.refs/ci-cd.md) — CI matrix, GoReleaser releases, GitHub
   Pages one-liners, the names the installers and `tb update` depend on.
 - [incidents/](./.refs/incidents/README.md) — postmortems + standing rules;

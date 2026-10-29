@@ -61,6 +61,7 @@ $ tb setup
 | <kbd>tb commit [msg]</kbd> | stage everything and commit, titled after the branch when no message is given |
 | <kbd>tb checkout [branch\|pr]</kbd> | switch branch (default branch when empty), pull and prune the other local branches |
 | <kbd>tb hot &lt;cmd&gt; &lt;files&gt;</kbd> | rerun a command every time one of the files changes |
+| <kbd>tb benchmark [-d 5m]</kbd> | generate random uuids for 1m, 5m or a custom time and estimate the years to find them all and the time to fill ram and disk |
 | <kbd>tb env [value]</kbd> | print a secret masked, or every env var masked when empty |
 | <kbd>tb secret set KEY [VALUE]</kbd> | store a secret, value from stdin when omitted (`echo v \| tb secret set k`) |
 | <kbd>tb secret get KEY</kbd> | print a secret, for piping (`export TOKEN=$(tb secret get TOKEN)`) |

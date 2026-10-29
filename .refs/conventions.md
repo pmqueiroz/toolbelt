@@ -38,8 +38,8 @@ Compiler directives are not comments and are allowed: `//go:embed`, and
   on Windows.
 - User-facing output goes through `internal/ui` (`ui.Info`, `ui.Warn`, …),
   never bare `fmt.Print` (exception: command results meant for piping, like
-  `tb version`, `tb env`, `tb secret get` and `tb secret list`, which write to
-`cmd.OutOrStdout()`).
+  `tb version`, `tb env`, `tb benchmark`, `tb secret get` and
+  `tb secret list`, which write to `cmd.OutOrStdout()`).
 - Log and error messages are lower-case.
 - External commands go through `run.Runner`, never `exec.Command` directly,
   so they are logged (exception: `shellrc.powershellProfile`, which runs
