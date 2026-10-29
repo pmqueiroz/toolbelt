@@ -1,2 +1,1 @@
 *.json linguist-language=jsonc
-*.dconf linguist-language=toml
