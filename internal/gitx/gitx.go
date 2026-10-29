@@ -34,7 +34,26 @@ func (g *Git) CurrentBranch(ctx context.Context) (string, error) {
 	return g.r.Output(ctx, "git", "branch", "--show-current")
 }
 
+var ErrNoDefaultBranch = errors.New("could not determine default branch")
+
 func (g *Git) DefaultBranch(ctx context.Context) (string, error) {
+	if branch, err := g.originHead(ctx); err == nil {
+		return branch, nil
+	}
+	if _, err := g.r.Output(ctx, "git", "remote", "set-head", "origin", "--auto"); err == nil {
+		if branch, err := g.originHead(ctx); err == nil {
+			return branch, nil
+		}
+	}
+	for _, branch := range []string{"main", "master"} {
+		if _, err := g.r.Output(ctx, "git", "rev-parse", "--verify", "--quiet", "refs/heads/"+branch); err == nil {
+			return branch, nil
+		}
+	}
+	return "", ErrNoDefaultBranch
+}
+
+func (g *Git) originHead(ctx context.Context) (string, error) {
 	ref, err := g.r.Output(ctx, "git", "symbolic-ref", "refs/remotes/origin/HEAD")
 	if err != nil {
 		return "", err
