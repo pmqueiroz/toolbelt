@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"runtime"
 	"time"
@@ -55,12 +54,8 @@ func newBenchmarkCmd() *cobra.Command {
 				Workers:  runtime.NumCPU(),
 				Bucket:   bench.NewBucket(bench.IndexChars),
 			}
-			ui.Info("generating uuids", "duration", duration, "workers", run.Workers)
-			stop := logProgress(cmd.Context(), run)
-			result := run.Start(cmd.Context())
-			stop()
-
-			printBenchmark(cmd.OutOrStdout(), result, run.Bucket, capacity)
+			result := runBenchmark(cmd.Context(), run)
+			fmt.Fprintln(cmd.OutOrStdout(), renderBenchmark(result, run.Bucket, capacity))
 			return nil
 		},
 	}
@@ -132,34 +127,5 @@ func logProgress(ctx context.Context, run *bench.Run) func() {
 	return func() {
 		cancel()
 		<-done
-	}
-}
-
-func printBenchmark(w io.Writer, result bench.Result, bucket *bench.Bucket, capacity bench.Capacity) {
-	rate := result.Rate()
-	set := bucket.Set()
-	rows := [][2]string{
-		{"uuids generated", fmt.Sprintf("%s in %s (%s/s on %d workers)",
-			humanize.Comma(int64(result.Generated)),
-			result.Elapsed.Round(time.Millisecond),
-			humanize.Comma(int64(rate)),
-			result.Workers)},
-		{"index found", fmt.Sprintf("%s uuids landed on an index already set to 1",
-			humanize.Comma(int64(result.Found)))},
-		{"bucket", fmt.Sprintf("%s, %s indexes of %d base64 chars, %.2f%% set to 1",
-			humanize.IBytes(bucket.Bytes()),
-			humanize.Comma(int64(bucket.Indexes())),
-			bench.IndexChars,
-			100*float64(set)/float64(bucket.Indexes()))},
-		{"find every uuid", bench.FormatSeconds(bench.SecondsToFindAll(rate))},
-		{"fill memory", fmt.Sprintf("%s of ram in %s",
-			humanize.IBytes(capacity.Memory),
-			bench.FormatSeconds(bench.SecondsToFill(capacity.Memory, rate)))},
-		{"fill storage", fmt.Sprintf("%s free on disk in %s",
-			humanize.IBytes(capacity.Disk),
-			bench.FormatSeconds(bench.SecondsToFill(capacity.Disk, rate)))},
-	}
-	for _, row := range rows {
-		fmt.Fprintf(w, "%s %s\n", ui.Title.Render(fmt.Sprintf("%-16s", row[0])), row[1])
 	}
 }
